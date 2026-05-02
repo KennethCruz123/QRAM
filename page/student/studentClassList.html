@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Class List Page</title>
+    <link rel="stylesheet" href="studentClassList.css">
+    <link rel="shortcut icon" href="/asset/image/Logo_QRAM.png" type="image/x-icon">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <span class="welcome-text">Welcome, <span id="studentName">Student</span></span>
+            <div> 
+                <button class="view-qr-btn" id="showQrBtn">View QR Code</button>
+                <button class="attendance-summary-btn" id="showAttendanceSummaryBtn">Attendance Summary</button>
+                <button class="logout-btn" id="logoutBtn">Logout</button>
+            </div>
+        </div>
+
+         <!-- Page Title -->
+        <div class="page-title">
+            <h1>Class List</h1>
+        </div>
+
+        <!-- Classes List -->
+        <div id="classesContainer" class="classes-list">
+            
+        </div>
+    </div>
+
+    <!-- View QR Modal -->
+    <div id="qrModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Student Details</h3>
+                <button class="close-modal" onclick="closeModal('qrModal')">&times;</button>
+            </div>
+            <div class="student-info">
+                <p><strong>Student ID:</strong> <span id="qrStudentId"></span></p>
+                <p><strong>Program:</strong> <span id="qrStudentProgram"></span></p>
+                <p><strong>Name:</strong> <span id="qrStudentName"></span></p>
+                <p><strong>Email:</strong> <span id="qrStudentEmail"></span></p>
+                <p><strong>Phone:</strong> <span id="qrStudentPhone"></span></p>
+            </div>
+            <div class="qr-container">
+                <p><strong>QR Code:</strong></p>
+                <div id="qrCodeDisplay"></div>
+                <button class="download-btn" id="downloadQrBtn">Download QR Code</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Summary Modal -->
+    <div id="attendanceSummaryModal" class="modal">
+        <div class="modal-content" style="max-width: 500px; max-height: none; overflow-y: visible;">
+            <div class="modal-header">
+                <h3>Attendance Summary</h3>
+                <button class="close-modal" onclick="closeModal('attendanceSummaryModal')">&times;</button>
+            </div>
+            <div id="attendanceSummaryContent">
+                <div class="loading-summary">Loading...</div>
+            </div>
+            <div class="modal-buttons" style="margin-top: 15px;">
+                <button class="cancel-btn" onclick="closeModal('attendanceSummaryModal')" style="width: 100%;">Close</button>
+            </div>
+        </div>
+    </div>
+    
+</body>
+    <script type="module" src="studentClassList.js"></script>
+</html>

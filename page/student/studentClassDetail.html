@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Student Class Details Page</title>
+    <link rel="stylesheet" href="studentClassDetail.css">
+    <link rel="shortcut icon" href="/asset/image/Logo_QRAM.png" type="image/x-icon">
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <button class="back-btn" id="backBtn">Back</button>
+            <span class="welcome-text">Welcome, <span id="studentName">Student</span></span>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+
+        <!-- Class Info -->
+        <div class="class-info">
+            <div class="class-title" id="className"></div>
+            <div class="class-detail"><strong>Class Code:</strong> <span id="classCode"></span></div>
+            <div class="class-detail"><strong>Teacher:</strong> <span id="classTeacher"></span></div>
+            <div class="class-detail"><strong>Class Level:</strong> <span id="classLevel"></span></div>
+            <div class="class-detail"><strong>Class Block:</strong> <span id="classBlock"></span></div>
+            <div class="class-detail"><strong>Class Day:</strong> <span id="classDay"></span></div>
+            <div class="class-detail"><strong>Class Time:</strong> <span id="classTime"></span></div>
+            <div class="class-detail"><strong>Class Loc:</strong> <span id="classLoc"></span></div>
+        </div>
+
+        <!-- Scan Session QR -->
+        <div class="scan-section">
+            <h4>Mark Attendance</h4>
+            <button class="btn-scan" id="scanSessionBtn">Scan Session QR Code</button>
+        </div>
+
+        <!-- Attendance History Table -->
+        <div class="attendance-section">
+            <h4>My Attendance History</h4>
+            <div class="table-container">
+                <table class="attendance-table" id="attendanceTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceBody">
+                        <tr><td colspan="3">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scanner Modal -->
+    <div id="scannerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Scan Session QR Code</h3>
+                <button class="close-modal" onclick="closeScanner()">&times;</button>
+            </div>
+            <div class="scanner-container">
+                <video id="video" style="width: 100%; border: 2px solid black; border-radius: 8px;"></video>
+                <canvas id="canvas" style="display: none;"></canvas>
+                <p id="scanResult" style="margin-top: 10px; font-size: 12px; text-align: center;"></p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="studentClassDetail.js"></script>
+</body>
+</html>

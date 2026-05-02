@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link rel="stylesheet" href="login.css">
+    <link rel="shortcut icon" href="/asset/image/Logo_QRAM.png" type="image/x-icon">
+
+</head>
+<body>
+    <!-- Main login -->
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo">
+                    <h1>QRAM</h1>
+                </div>
+                <h2>Welcome Back</h2>
+                <p>Sign in to your account</p>
+            </div>
+
+            <div class="login-form">
+                <div class="input-field">
+                    <label>User ID</label>
+                    <input type="text" placeholder="Enter your user ID" id="userId">
+                </div>
+
+                <div class="input-field">
+                    <label>Password</label>
+                    <input type="password" placeholder="Enter your password" id="password">
+                </div>
+
+                <div class="forgot-link">
+                    <a href="#" id="changePasswordLink">Change Password</a>
+                </div>
+
+                <button class="login-btn" id="loginBtn">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Change Password</h3>
+                <button class="close-modal" onclick="closePasswordModal()">&times;</button>
+            </div>
+
+            <div class="form-group">
+                <label>User ID</label>
+                <input type="text" id="changeUserId" placeholder="Enter your User ID">
+            </div>
+
+            <div class="form-group">
+                <label>Current Password</label>
+                <input type="password" id="currentPassword" placeholder="Enter current password">
+            </div>
+
+            <div class="form-group">
+                <label>New Password</label>
+                <input type="password" id="newPassword" placeholder="Enter new password">
+            </div>
+
+            <div class="form-group">
+                <label>Confirm New Password</label>
+                <input type="password" id="confirmPassword" placeholder="Confirm new password">
+            </div>
+
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closePasswordModal()">Cancel</button>
+                <button class="submit-btn" id="savePasswordBtn">Update Password</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+    <script type="module" src="login.js"></script>
+</html>

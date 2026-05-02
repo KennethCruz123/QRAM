@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dash Board Page</title>
+    <link rel="stylesheet" href="adminDashboard.css">
+    <link rel="shortcut icon" href="/asset/image/Logo_QRAM.png" type="image/x-icon">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+</head>
+<body>
+    
+                                <!-- Main Body - Display Everything -->
+    <div class="container">
+
+
+
+        <!-- Welcom Bar or Header -->
+        <div class="welcome-bar">
+            <div class="welcome-text">
+                <h2>Welcome, <span id="welcomeAdminName">Admin</span></h2>
+            </div>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+
+
+
+        <!-- School-wide Attendance Summary -->
+        <div class="section">
+            <div class="section-header">
+                <h2>ATTENDANCE SUMMARY</h2>
+            </div>
+            <div id="attendanceSummaryContainer" class="summary-cards-container" style="padding: 20px;">
+                <div style="text-align: center; padding: 40px;">Loading attendance data...</div>
+            </div>
+        </div>
+
+
+
+        <!-- System Configuration -->
+        <div class="section">
+            <div class="section-header">
+                <h2>SYSTEM CONFIGURATION</h2>
+            </div>
+            <div style="padding: 20px;">
+                
+                <div class="config-row">
+                    <!-- Late Threshold -->
+                    <div class="policy-group">
+                        <label>Late Threshold:</label>
+                        <div class="policy-input-group">
+                            <input type="number" id="lateThreshold" min="1" max="120" value="30" class="policy-input">
+                            <span>minutes after class start</span>
+                        </div>
+                        <p class="policy-description">Students scanned after this time will be marked as "Late"</p>
+                    </div>
+                    
+                    <!-- Minimum Attendance Rate -->
+                    <div class="policy-group">
+                        <label>Minimum Attendance Rate:</label>
+                        <div class="policy-input-group">
+                            <input type="number" id="minAttendanceRate" min="0" max="100" value="70" class="policy-input">
+                            <span>% required to pass</span>
+                        </div>
+                        <p class="policy-description">Students below this rate will be flagged as "At Risk"</p>
+                    </div>
+                </div>
+                
+                <div class="config-save-btn">
+                    <button id="savePolicyBtn">Save All Settings</button>
+                </div>
+                
+            </div>
+        </div>
+
+
+
+        <!-- Manage Teachers Section -->
+        <div class="section">
+
+            <div class="section-header">
+                <h2>MANAGE TEACHERS</h2>
+                <button class="add-btn" id="addTeacherBtn">add teacher</button>
+            </div>
+
+            <!-- Filter and Sort bar -->
+            <div class="filter-sort-bar">
+                <!-- Filter -->
+                <div class="filter-group">
+                    <input type="text" id="teacherSearch" placeholder="Search by ID or Name" class="filter-input">
+                </div>
+                <!-- Sort -->
+                <div class="sort-group">
+                    <label>Sort by:</label>
+                    <select id="teacherSort" class="sort-select">
+                        <option value="id_asc">ID asc</option>
+                        <option value="id_desc">ID desc</option>
+                        <option value="name_asc">Name asc</option>
+                        <option value="name_desc">Name desc</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- User Data Table -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>ID</th><th>Name</th><th>Email</th><th>Phone #</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="teachersBody">
+                        
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="teachersPagination">
+                <button class="pagination-btn prev-teacher">Previous</button>
+                <span class="page-info" id="teacherPageInfo">Page 1 of 1</span>
+                <button class="pagination-btn next-teacher">Next</button>
+            </div>
+        </div>
+
+
+
+        <!-- Manage Students Section -->
+        <div class="section">
+
+            <div class="section-header">
+                <h2>MANAGE STUDENTS</h2>
+                <button class="add-btn" id="addStudentBtn">add student</button>
+            </div>
+
+            <!-- Filter and Sort bar -->
+            <div class="filter-sort-bar">
+                <!-- Filter -->
+                <div class="filter-group">
+                    <input type="text" id="studentSearch" placeholder="Search by ID, Level, Block, Name" class="filter-input">
+                </div>
+                <!-- Sort -->
+                <div class="sort-group">
+                    <label>Sort by:</label>
+                    <select id="studentSort" class="sort-select">
+                        <option value="id_asc">ID asc</option>
+                        <option value="id_desc">ID desc</option>
+                        <option value="name_asc">Name asc</option>
+                        <option value="name_desc">Name desc</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Program Filter Buttons -->
+            <div class="program-filter-bar">
+                <span class="program-filter-label">Filter by Program:</span>
+                <button class="program-filter-btn active" data-program="all">All</button>
+                <button class="program-filter-btn" data-program="BSIT">BSIT</button>
+                <button class="program-filter-btn" data-program="BSCS">BSCS</button>
+                <button class="program-filter-btn" data-program="BSEMC">BSEMC</button>
+            </div>
+
+            <!-- Level Filter Buttons-->
+            <div class="level-filter-bar">
+                <span class="level-filter-label">Filter by Level:</span>
+                <button class="level-filter-btn active" data-level="all">All</button>
+                <button class="level-filter-btn" data-level="1">1</button>
+                <button class="level-filter-btn" data-level="2">2</button>
+                <button class="level-filter-btn" data-level="3">3</button>
+                <button class="level-filter-btn" data-level="4">4</button>
+                <button class="level-filter-btn" data-level="5">5</button>
+                <button class="level-filter-btn" data-level="6">6</button>
+            </div>
+
+            <!-- Block Filter Buttons-->
+            <div class="block-filter-bar">
+                <span class="block-filter-label">Filter by Block:</span>
+                <button class="block-filter-btn active" data-block="all">All</button>
+                <button class="block-filter-btn" data-block="A">A</button>
+                <button class="block-filter-btn" data-block="B">B</button>
+                <button class="block-filter-btn" data-block="C">C</button>
+                <button class="block-filter-btn" data-block="D">D</button>
+            </div>
+
+            <!-- User Data Table -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>ID</th><th>Name</th><th>Program</th><th>Level</th><th>Block</th><th>Email</th><th>Phone #</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="studentsBody">
+                        
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="studentsPagination">
+                <button class="pagination-btn prev-student">Previous</button>
+                <span class="page-info" id="studentPageInfo">Page 1 of 1</span>
+                <button class="pagination-btn next-student">Next</button>
+            </div>
+
+        </div>
+
+
+
+        <!-- Manage Classes Section -->
+        <div class="section">
+
+            <div class="section-header">
+                <h2>MANAGE CLASSES</h2>
+                <button class="add-btn" id="addClassBtn">add class</button>
+            </div>
+
+            <!-- Filter and Sort bar -->
+            <div class="filter-sort-bar">
+                <!-- Filter -->
+                <div class="filter-group">
+                    <input type="text" id="classSearch" placeholder="Search by Code, Subject, or Teacher" class="filter-input">
+                </div>
+                <!-- Sort -->
+                <div class="sort-group">
+                    <label>Sort by:</label>
+                    <select id="classSort" class="sort-select">
+                        <option value="code_asc">Code asc</option>
+                        <option value="code_desc">Code desc</option>
+                        <option value="subject_asc">Subject asc</option>
+                        <option value="subject_desc">Subject desc</option>
+                        <option value="students_asc">Student # asc</option>
+                        <option value="students_desc">Students # desc</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Classes Data Table -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>Code</th><th>Subject</th><th>Program</th><th>Level</th><th>Block</th><th>Teacher</th><th># of Student</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="classesBody">
+                        
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="classesPagination">
+                <button class="pagination-btn prev-class">Previous</button>
+                <span class="page-info" id="classPageInfo">Page 1 of 1</span>
+                <button class="pagination-btn next-class">Next</button>
+            </div>
+        </div>
+
+    </div>
+
+
+
+    <!-- Create/Edit Teacher Modal -->
+    <div id="teacherModal" class="modal"> 
+        <div class="modal-content">
+            <!-- Header -->
+            <div class="modal-header">
+                <h3 id="teacherModalTitle">Add Teacher</h3>
+                <button class="close-modal" onclick="closeModal('teacherModal')">&times;</button>
+            </div>
+
+            <!-- Input Fields -->
+            <div class="form-group"><label>User ID</label><input type="text" id="teacherId" placeholder="Enter ID"></div>
+            <div class="form-group"><label>Full Name</label><input type="text" id="teacherName" placeholder="Enter Full Name"></div>
+            <div class="form-group"><label>Email</label><input type="email" id="teacherEmail" placeholder="Enter Email Address"></div>
+            <div class="form-group"><label>Phone Number</label><input type="tel" id="teacherPhone" placeholder="Enter Phone Number"></div>
+            <div class="form-group"><label>Password</label><input type="password" id="teacherPassword" placeholder="••••••"></div>
+
+            <!-- Cancel/Save Buttons -->
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closeModal('teacherModal')">Cancel</button>
+                <button class="submit-btn" id="saveTeacherBtn">Create</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Create/Edit Student Modal -->
+    <div id="studentModal" class="modal" >
+        <div class="modal-content">
+            <!-- Header -->
+            <div class="modal-header">
+                <h3 id="studentModalTitle">Add Student</h3>
+                <button class="close-modal" onclick="closeModal('studentModal')">&times;</button>
+            </div>
+
+            <!-- Input Fields -->
+            <div class="form-group"><label>Student ID</label><input type="text" id="studentId" placeholder="Enter ID"></div>
+            <div class="form-group"><label>Full Name</label><input type="text" id="studentName" placeholder="Enter Full Name"></div>
+            <div class="form-group">
+                <label>Program</label>
+                <select id="studentProgram">
+                    <option value="">Select Program</option>
+                    <option value="BSIT">BSIT</option>
+                    <option value="CCS">CCS</option>
+                    <option value="BSEMC">BSEMC</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Level</label>
+                <select id="studentLevel">
+                    <option value="">Select Level</option>
+                    <option value="1">Level 1</option>
+                    <option value="2">Level 2</option>
+                    <option value="3">Level 3</option>
+                    <option value="4">Level 4</option>
+                    <option value="5">Level 5</option>
+                    <option value="6">Level 6</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Block</label>
+                <select id="studentBlock">
+                    <option value="">Select Block</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Email</label><input type="email" id="studentEmail" placeholder="Enter Email Address"></div>
+            <div class="form-group"><label>Phone Number</label><input type="tel" id="studentPhone" placeholder="Enter phone Number"></div>
+            <div class="form-group"><label>Password</label><input type="password" id="studentPassword" placeholder="••••••"></div>
+            
+            <!-- Cancel/Save Buttons -->
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closeModal('studentModal')">Cancel</button>
+                <button class="submit-btn" id="saveStudentBtn">Create</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Create/Edit Class Modal -->
+    <div id="classModal" class="modal">
+        <div class="modal-content">
+            <!-- Header -->
+            <div class="modal-header">
+                <h3 id="classModalTitle">Add Class</h3>
+                <button class="close-modal" onclick="closeModal('classModal')">&times;</button>
+            </div>
+
+            <!-- Input Fields -->
+            <div class="form-group"><label>Class Code</label><input type="text" id="classCode" placeholder="Enter Class Code"></div>
+            <div class="form-group"><label>Subject</label><input type="text" id="classSubject" placeholder="Enter Subject Name"></div>
+            
+            <div class="form-group">
+                <label>Program</label>
+                <select id="classProgram">
+                    <option value="">Open to All Programs</option>
+                    <option value="BSIT">BSIT</option>
+                    <option value="BSCS">BSCS</option>
+                    <option value="BSEMC">BSEMC</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Blocks</label>
+                <div class="blocks-checkbox">
+                    <label><input type="checkbox" value="A">A</label>
+                    <label><input type="checkbox" value="B">B</label>
+                    <label><input type="checkbox" value="C">C</label>
+                    <label><input type="checkbox" value="D">D</label>
+                </div>
+            </div>
+            <div class="form-group"><label>Teacher</label><select id="classTeacherSelect"></select></div>
+            <div class="form-group">
+                <label>Building</label>
+                <div style="display: flex; gap: 20px; margin-top: 5px;">
+                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
+                        <input type="radio" name="classBuilding" value="Main" checked> Main
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
+                        <input type="radio" name="classBuilding" value="Annex"> Annex
+                    </label>
+                </div>
+            </div>
+            <div class="form-group"><label>Room</label><input type="text" id="classRoom" placeholder="Enter Room Number"></div>
+            <div class="form-group">
+                <label>Days</label>
+                <div class="days-checkbox">
+                    <label><input type="checkbox" value="M"> M</label>
+                    <label><input type="checkbox" value="T"> T</label>
+                    <label><input type="checkbox" value="W"> W</label>
+                    <label><input type="checkbox" value="Th"> Th</label>
+                    <label><input type="checkbox" value="F"> F</label>
+                    <label><input type="checkbox" value="S"> S</label>
+                </div>
+            </div>
+            <div class="form-group"><label>Start Time</label><input type="time" id="classStartTime" step="60"></div>
+            <div class="form-group"><label>End Time</label><input type="time" id="classEndTime" step="60"></div>
+            <div class="form-group">
+                <label>Class Level</label>
+                <div style="display: flex; gap: 20px; margin-top: 5px;">
+                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
+                        <input type="radio" name="classLevel" value="1"> 1
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
+                        <input type="radio" name="classLevel" value="2"> 2
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
+                        <input type="radio" name="classLevel" value="3"> 3
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
+                        <input type="radio" name="classLevel" value="4"> 4
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
+                        <input type="radio" name="classLevel" value="5"> 5
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
+                        <input type="radio" name="classLevel" value="6"> 6
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Color</label>
+                <select id="classColor">
+                    <option value="orange">Orange</option>
+                    <option value="green">Green</option>
+                    <option value="blue">Blue</option>
+                    <option value="yellow">Yellow</option>
+                    <option value="orangered">Red</option>
+                    <option value="violet">Violet</option>
+                    <option value="white">White</option>
+                    <option value="Black">Black</option>
+                    <option value="Grey">Grey</option>
+                </select>
+            </div>
+
+            <!-- Cancel/Save Buttons -->
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closeModal('classModal')">Cancel</button>
+                <button class="submit-btn" id="saveClassBtn">Create</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- View Student Modal -->
+    <div id="studentViewModal" class="modal">
+        <div class="modal-content"  style="border: 2px solid black;">
+
+            <!-- Header -->
+            <div class="modal-header">
+                <h3>Student Details</h3>
+                <button class="close-modal" onclick="closeModal('studentViewModal')">&times;</button>
+            </div>
+
+            <!-- Student Info -->
+            <div class="student-info">
+                <p><strong>Student ID:</strong> <span id="viewStudentId"></span></p>
+                <p><strong>Name:</strong> <span id="viewStudentName"></span></p>
+                <p><strong>Email:</strong> <span id="viewStudentEmail"></span></p>
+                <p><strong>Phone:</strong> <span id="viewStudentPhone"></span></p>
+            </div>
+
+            <!-- QR Code Container -->
+            <div class="qr-container">
+                <p><strong>QR Code:</strong></p>
+                <div id="viewQRCodeDisplay"></div> <!-- Display QR Code -->
+                <button class="add-btn" id="downloadViewQrBtn">Download QR Code</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- ADD STUDENT TO CLASS MODAL -->
+    <div id="addStudentToClassModal" class="modal">
+        <div class="modal-content">
+            
+            <!-- Header -->
+            <div class="modal-header">
+                <h3>Add Students to Class</h3>
+                <button class="close-modal" onclick="closeModal('addStudentToClassModal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Class: <span id="selectedClassName"></span></label>
+            </div>
+            
+            <!-- Filter -->
+             
+            <!-- Filter Level -->
+            <div class="modal-filter-group">
+                <span class="modal-filter-label">Filter by Level:</span>
+                <div class="level-checkboxes" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <label><input type="checkbox" class="level-filter-checkbox" value="1"><span>1</span></label>
+                    <label><input type="checkbox" class="level-filter-checkbox" value="2"><span>2</span></label>
+                    <label><input type="checkbox" class="level-filter-checkbox" value="3"><span>3</span></label>
+                    <label><input type="checkbox" class="level-filter-checkbox" value="4"><span>4</span></label>
+                    <label><input type="checkbox" class="level-filter-checkbox" value="5"><span>5</span></label>
+                    <label><input type="checkbox" class="level-filter-checkbox" value="6"><span>6</span></label>
+                </div>
+            </div>
+
+            <!-- Filter Block -->
+            <div class="modal-filter-group">
+                <span class="modal-filter-label">Filter by Block:</span>
+                <div class="block-checkboxes" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <label><input type="checkbox" class="block-filter-checkbox" value="A"><span>A</span></label>
+                    <label><input type="checkbox" class="block-filter-checkbox" value="B"><span>B</span></label>
+                    <label><input type="checkbox" class="block-filter-checkbox" value="C"><span>C</span></label>
+                    <label><input type="checkbox" class="block-filter-checkbox" value="D"><span>D</span></label>
+                </div>
+            </div>
+            
+            <!-- Select/Clear All Buttons -->
+            <div class="modal-action-buttons">
+                <button id="modalSelectAllBtn" class="modal-select-all-btn">Select All</button>
+                <button id="modalClearAllBtn" class="modal-clear-all-btn">Clear All</button>
+            </div>
+            
+            <!-- Display All Student With Filter -->
+            <div class="form-group">
+                <label>Select Students:</label>
+                <div id="studentsListContainer" class="student-list" style="height: 40vh;"></div>
+            </div>
+            
+            <!-- Cancel/Save Buttons -->
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closeModal('addStudentToClassModal')">Cancel</button>
+                <button class="submit-btn" id="saveAddStudentsBtn">Add Selected</button>
+            </div>
+        </div>
+    </div>
+
+    
+   
+    <!-- VIEW CLASS STUDENTS MODAL -->
+    <div id="viewClassStudentsModal" class="modal">
+        <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h3>Class Details</h3>
+                <button class="close-modal" onclick="closeModal('viewClassStudentsModal')">&times;</button>
+            </div>
+            <div class="class-details"style="background: #0077FF; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <p><strong>Subject:</strong> <span id="viewClassName"></span></p>
+                <p><strong>Program:</strong> <span id="viewClassProgram"></span></p>
+                <p><strong>Building:</strong> <span id="viewClassBuilding"></span></p>
+                <p><strong>Room:</strong> <span id="viewClassRoom"></span></p>
+                <p><strong>Days:</strong> <span id="viewClassDays"></span></p>
+                <p><strong>Time:</strong> <span id="viewClassTime"></span></p>
+                <p><strong>Level:</strong> <span id="viewClassLevel"></span></p>
+                <p><strong>Teacher:</strong> <span id="viewClassTeacher"></span></p>
+            </div>
+            <div class="form-group">
+                <label>Enrolled Students (<span id="modalStudentCount"></span>)</label>
+                <div id="classStudentsList" class="student-list" style="max-height: none; overflow-y: visible;"></div>
+            </div>
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closeModal('viewClassStudentsModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+    <script type="module" src="adminDashBoard.js"></script>
+</html>

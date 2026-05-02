@@ -1,0 +1,252 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: 0;
+}
+
+body {
+    background-image: url(/asset/image/landing_page_background.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+    background-size: cover;
+}
+
+.QRAM-logo-heaader{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 16vh;
+}
+
+.QRAM-logo-heaader h1 {
+    font-size: 50px;
+    font-family: Impact;
+    color: #0077FF;
+    letter-spacing: 1px;
+    -webkit-text-stroke: 12px black;
+    paint-order: stroke fill;
+}
+
+.catch-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 18vh;
+    margin-top: 20vh;
+}
+
+.catch-text h1{
+    font-family: Arial;
+    font-size: 50px;
+    letter-spacing: 2px;
+    -webkit-text-stroke: 4px #0077FF;
+    paint-order: stroke fill;
+}
+
+.extra-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20vh;
+    height: 16vh;
+    margin-bottom: 10vh;
+}
+
+.extra-text h1{
+    font-family: Arial;
+    font-size: 20px;
+    -webkit-text-stroke: 2px white;
+    paint-order: stroke fill;
+}
+
+.extra-text h1:first-child{
+    margin-bottom: 20px;
+}
+
+
+
+
+/* -------------------- 100vh  --------------------  */
+
+.phone-image-container {
+    height: 50vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20vh;
+}
+
+.phone-image-container img{
+    display: block;
+    width: 450px;
+}
+
+/* 50vh + 20vh */
+
+.What-do-we-offer-text-container {
+    height: 10vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 50px;
+}
+
+.What-do-we-offer-text-container h1{
+    font-family: Arial;
+    font-size: 40px;
+    -webkit-text-stroke: 2px white;
+    paint-order: stroke fill;
+}
+
+.block-container{
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+    padding: 20px;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #0077FF;
+    padding: 40px 15px 30px 15px;
+    width: 220px;
+    border-radius: 20px;
+    border: 2px solid black;
+    color: white;
+}
+
+.container img{
+    width: 55px;
+}
+
+.container p {
+    font-family: Arial;
+    font-size: 28px;
+    font-weight: bold;
+    margin-top: 30px;
+}
+
+.container h1 {
+    font-family: Arial;
+    font-size: 22px;
+    margin-top: 20px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.container h2 {
+    font-family: Arial;
+    font-size: 13px;
+    font-weight: 400;
+    margin-bottom: 5px;
+    text-align: center;
+    font-weight: bold;
+    color: black;
+}
+
+.Get-started-container{
+    height: 10vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 30px;
+}
+
+.Get-started-container button{
+    font-size: 28px;
+    font-weight: 700;
+    background-color: #0077FF;
+    border: 2px solid black;
+    border-radius: 40px;
+    padding: 12px 35px;
+    cursor: pointer;
+    color: white;
+}
+
+.QRAM-logo-footer{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 10vh;
+    margin-top: 50px;
+}
+
+.QRAM-logo-footer h1 {
+    font-size: 28px;
+    font-family: Impact;
+    color: #0077FF;
+    letter-spacing: 1px;
+    -webkit-text-stroke: 6px black;
+    paint-order: stroke fill;
+}
+
+.Time-is-important-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.Time-is-important-container h1{
+    font-family: Arial;
+    font-size: 16px;
+    font-weight: 400;
+}
+
+.info-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.info-box {
+    width: 100px;
+    height: 25px;
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.info-box:first-child{
+    border-left: 0px;
+}
+
+.info-box:last-child{
+    border-right: 0px;
+}
+
+.info-box a{
+    text-decoration: none;
+    font-family: Arial;
+    font-size: 14px;
+    color: black;
+}
+
+.info-box a:hover {
+    text-decoration: underline;
+}
+
+.Kentech {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.Kentech h1{
+    font-family: Arial;
+    font-size: 13px;
+    font-weight: 200;
+}
+

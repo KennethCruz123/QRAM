@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Teacher Class Details Page</title>
+    <link rel="stylesheet" href="teachercClassDetail.css">
+    <link rel="shortcut icon" href="/asset/image/Logo_QRAM.png" type="image/x-icon">
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <button class="back-btn" id="backBtn">Back</button>
+            <span class="welcome-text">Welcome, Mr./Ms.<span id="teacherName">Teacher</span></span>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+
+        <!-- Class Info  -->
+        <div class="class-info">
+            <div class="class-title" id="className"></div>
+            <div class="class-detail"><strong>Class Code:</strong> <span id="classCode"></span></div>
+            <div class="class-detail"><strong>Class Level:</strong> <span id="classLevel"></span></div>
+            <div class="class-detail"><strong>Class Block:</strong> <span id="classBlock"></span></div>
+            <div class="class-detail"><strong>Class Day:</strong> <span id="classDay"></span></div>
+            <div class="class-detail"><strong>Class Time:</strong> <span id="classTime"></span></div>
+            <div class="class-detail"><strong>Class Loc:</strong> <span id="classLoc"></span></div>
+        </div>
+
+        <!-- Create Session -->
+        <div class="create-session">
+            <h4>New Session</h4>
+            <div class="date-input">
+                <select id="sessionMonth"></select>
+                <select id="sessionDay"></select>
+                <select id="sessionYear"></select>
+            </div>
+            <button class="btn-create" id="createSessionBtn">Create Session</button>
+            <button class="btn-download" id="downloadAttendanceBtn">Download Attendance</button>
+        </div>
+
+        <!-- Attendance Summary -->
+        <div class="attendance-summary" id="attendanceSummary" style="display: none;">
+            <div class="summary-header">
+                <h4>Attendance Overview</h4>
+            </div>
+            <div class="summary-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Total Students:</span>
+                    <span class="stat-value" id="totalStudents">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Sessions:</span>
+                    <span class="stat-value" id="totalSessions">0</span>
+                </div>
+
+                <div class="stat-item">
+                    <span class="stat-label">Attendance Rate:</span>
+                    <span class="stat-value" id="attendanceRate">0%</span>
+                </div>
+                
+                <div class="stat-item">
+                    <span class="stat-label">Present:</span>
+                    <span class="stat-value" id="totalPresent">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Late:</span>
+                    <span class="stat-value" id="totalLate">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Absent:</span>
+                    <span class="stat-value" id="totalAbsent">0</span>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Matrix Table -->
+    <div class="table-container">
+        <table class="attendance-table" id="attendanceTable">
+            <thead id="tableHeader">
+                <tr>
+                    <th>Student</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+            
+            </tbody>
+        </table>
+    </div>
+
+    <!-- QR Modal -->
+    <div id="qrModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Session QR Code</h3>
+                <button class="close-modal" onclick="closeModal('qrModal')">&times;</button>
+            </div>
+            <div class="qr-container">
+                <p><strong>Date:</strong> <span id="qrDate"></span></p>
+                <div id="qrCodeDisplay"></div>
+                <button class="download-btn" id="downloadQrBtn">Download QR Code</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scanner Modal -->
+    <div id="scannerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Scan Student QR</h3>
+                <button class="close-modal" onclick="closeScanner()">&times;</button>
+            </div>
+            <div class="scanner-container">
+                <video id="video" style="width: 100%; border: 2px solid black; border-radius: 8px;"></video>
+                <canvas id="canvas" style="display: none;"></canvas>
+                <p id="scanResult" style="margin-top: 10px; font-size: 12px;"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Status Modal -->
+    <div id="editStatusModal" class="modal">
+        <div class="modal-content" style="max-width: 425px;">
+            <div class="modal-header">
+                <h3>Edit Attendance</h3>
+                <button class="close-modal" onclick="closeEditStatusModal()">&times;</button>
+            </div>
+            <div class="edit-status-content">
+                <p><strong>Student:</strong> <span id="editStudentName"></span></p>
+                <p><strong>Date:</strong> <span id="editSessionDate"></span></p>
+                <p><strong>Current Status:</strong> <span id="editCurrentStatus"></span></p>
+            </div>
+            <div class="edit-status-buttons">
+                <button class="edit-status-btn present-btn" id="editPresentBtn">P (Present)</button>
+                <button class="edit-status-btn late-btn" id="editLateBtn">L (Late)</button>
+                <button class="edit-status-btn absent-btn" id="editAbsentBtn">A (Absent)</button>
+            </div>
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closeEditStatusModal()" style="width: 100%;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Session Modal -->
+    <div id="editSessionModal" class="modal">
+        <div class="modal-content" style="max-width: 350px;">
+            <div class="modal-header">
+                <h3>Edit Session</h3>
+                <button class="close-modal" onclick="closeEditSessionModal()">&times;</button>
+            </div>
+            <div class="edit-session-content">
+                <p><strong>Date:</strong> <span id="editSessionDateDisplay"></span></p>
+            </div>
+            
+            <div class="bulk-edit-section">
+                <div class="bulk-buttons">
+                    <button class="bulk-present-btn" onclick="bulkUpdateStatus('present')">All Present</button>
+                    <button class="bulk-late-btn" onclick="bulkUpdateStatus('late')">All Late</button>
+                    <button class="bulk-absent-btn" onclick="bulkUpdateStatus('absent')">All Absent</button>
+                </div>
+            </div>
+            
+            <div class="delete-session-section" style="border-top: 1px solid #ddd; padding-top: 15px; margin-top: 10px;">
+                <button class="delete-session-btn" onclick="confirmDeleteSession()" style="background-color: red; color: white; border: 2px solid black; padding: 8px 15px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px;">Delete Entire Session</button>
+            </div>
+            
+            <div class="modal-buttons" style="margin-top: 20px;">
+                <button class="cancel-btn" onclick="closeEditSessionModal()" style="width: 100%;">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="teacherClassDetail.js"></script>
+</body>
+</html>

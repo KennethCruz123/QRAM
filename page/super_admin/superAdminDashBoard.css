@@ -1,0 +1,868 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+}
+
+.container {
+    width: 90%;
+    max-width: 1400px;
+    min-height: 100vh;
+    background-color: white;
+    padding-top: 20px;
+}
+
+
+
+/* Welcome bar */
+.welcome-bar {
+    background-color: #0077FF;
+    border-radius: 15px;
+    padding: 15px 25px;
+    margin-bottom: 25px;
+    border: 2px solid black;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.welcome-text h2 {
+    color: white;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.welcome-text h2 span {
+    color: white;
+}
+
+/* Logout Button */
+.logout-btn {
+    background-color: red;
+    color: white;
+    border: 2px solid black;
+    padding: 8px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* Section 4 Manage */
+.section {
+    background: white;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    border: 2px solid black;
+    overflow: auto;
+    position: relative;
+}
+
+.section-header {
+    background-color: #0077FF;
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid black;
+    position: sticky;
+}
+
+.add-btn {
+    background-color: green;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 8px;
+    border: 2px solid black;
+    cursor: pointer;
+}
+
+
+/* Hide scroll bar  */
+.modal-content::-webkit-scrollbar {
+    display: none;
+}
+
+.section::-webkit-scrollbar {
+    display: none;
+}
+
+.table-container::-webkit-scrollbar {
+    display: none;
+}
+
+
+/* Table organize */
+.table-container {
+    overflow-x: auto;
+    padding: 0px 20px 20px 20px;
+    
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 6px 10px;
+    text-align: center;
+    border-bottom: 1px solid white;
+    white-space: nowrap;
+}
+
+th {
+    background-color: #0077FF;
+    color: white;
+}
+
+.table-container tbody tr {
+    height: 44px;
+}
+
+.table-container tbody td {
+    padding: 6px 10px;
+    vertical-align: middle;
+}
+
+.empty-row {
+    height: 44px;
+}
+
+.empty-row td {
+    padding: 6px 10px;
+}
+
+
+
+/* Action Buttons */
+/* Base Design */
+.action-buttons {
+    display: flex;
+    gap: 2px;
+    justify-content: center;
+    align-items: center;
+}
+
+.action-buttons button {
+    padding: 3px 12px;
+    font-size: 12px;
+    height: 30px;
+    font-weight: bold;
+    border: 2px solid black;
+    color: black;
+    border-radius: 5px;
+    cursor: pointer;
+
+}
+
+/* Buttons Color */
+.btn-view { background-color: #0077FF; }
+.btn-edit { background-color: yellow;}
+.btn-delete { background-color: red; }
+.btn-add-student { background-color: green; }
+
+
+
+/* Filter and Sort Bar Design */
+.filter-sort-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    gap: 20px;
+    flex-wrap: nowrap;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 250px;
+}
+
+.filter-input {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    border: 2px solid black;
+}
+
+.sort-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sort-group label {
+    font-weight: bold;
+    font-size: 14px;
+    color: black;
+}
+
+.sort-select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    background: white;
+    border: 2px solid black;
+}
+
+
+
+/* Block and Level Filter Bar Design*/
+.block-filter-bar, .level-filter-bar, .program-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0px 20px 10px 20px;
+    flex-wrap: nowrap;
+}
+
+.block-filter-label, .level-filter-label, .program-filter-label {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.block-filter-btn, .level-filter-btn, .program-filter-btn {
+    padding: 6px 16px;
+    border: 2px solid black;
+    background: white;
+    color: #0077FF;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+/* Color When Active */
+.block-filter-btn.active, .level-filter-btn.active, .program-filter-btn.active {
+    background: #0077FF;
+    color: white;
+}
+
+
+
+/* Pagination Design*/
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    padding: 0px 20px 15px 20px;
+    background: white;
+}
+
+.pagination-btn {
+    background: #0077FF;
+    color: white;
+    border: 2px solid black;
+    padding: 6px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.page-info {
+    font-size: 14px;
+    color: black;
+    font-weight: bold;
+}
+
+
+
+
+/* Modal General Design */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 15px;
+    border: 2px solid black;
+    width: 500px;
+    max-width: 90%;
+    padding: 15px 25px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid black;
+    padding-bottom: 10px;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+/* Modal Form Continer */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+/* Modal Checkboxes */
+.blocks-checkbox, .days-checkbox {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.blocks-checkbox label, .days-checkbox label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: normal;
+}
+
+/* Modal Buttons */
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.modal-buttons button {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.submit-btn, .cancel-btn {
+    color: black;
+    border: 2px solid black;
+}
+
+/* Buttons color */
+.submit-btn { background-color: #0077FF; }
+.cancel-btn { background-color: grey; }
+
+
+
+
+/* Class Modal Specific Design */
+#classModal .modal-content {
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+#classModal .form-group {
+    margin-bottom: 12px;
+}
+
+#classModal .form-group label {
+    font-size: 13px;
+    margin-bottom: 3px;
+}
+
+#classModal .form-group input,
+#classModal .form-group select {
+    padding: 8px;
+    font-size: 13px;
+}
+
+
+
+/* Class Modal Specific Design */
+#studentModal .modal-content {
+    max-height: 100vh;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+#studentModal .form-group {
+    margin-bottom: 12px;
+}
+
+#studentModal .form-group label {
+    font-size: 13px;
+    margin-bottom: 3px;
+}
+
+#studentModal .form-group input,
+#studentModal .form-group select {
+    padding: 8px;
+    font-size: 13px;
+}
+
+
+
+/* Modal Filters (Add Student to Class) */
+.modal-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 0;
+    margin-bottom: 10px;
+}
+
+.modal-filter-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 5px;
+}
+
+.modal-filter-label {
+    font-weight: bold;
+    font-size: 13px;
+    color: black;
+}
+
+
+
+/* Add Student Modal Filter Level and Block*/
+.modal-level-filter-btn, .modal-block-filter-btn {
+    padding: 4px 12px;
+    border: 2px solid black;
+    background: white;
+    color: #0077FF;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* Button color */
+.modal-level-filter-btn.active, .modal-block-filter-btn.active {
+    background: #0077FF;
+    color: white;
+}
+
+.modal-action-buttons {
+    display: flex;
+    gap: 10px;
+    padding: 5px 0;
+    margin-bottom: 10px;
+}
+
+.modal-select-all-btn {
+    background: #0077FF;
+    color: white;
+    border: 2px solid black;
+    padding: 5px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.modal-clear-all-btn {
+    background: grey;
+    color: white;
+    border: 2px solid black;
+    padding: 5px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+
+
+
+/* Level and Block Filter Checkboxes (styled like buttons) */
+.level-checkboxes, .block-checkboxes {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.level-checkboxes label, .block-checkboxes label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+}
+
+.level-checkboxes input, .block-checkboxes input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.level-checkboxes label span, .block-checkboxes label span {
+    padding: 6px 16px;
+    border: 2px solid black;
+    background: white;
+    color: #0077FF;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+
+}
+
+.level-checkboxes input:checked + span, 
+.block-checkboxes input:checked + span {
+    background: #0077FF;
+    color: white;
+}
+
+
+
+
+
+/* ========== QR CODE & STUDENT INFO ========== */
+/* QR Code and Student Info */
+.qr-container {
+    text-align: center;
+    padding: 20px;
+}
+
+.qr-container canvas {
+    margin: 20px auto;
+    border: 1px solid black;
+    padding: 10px;
+}
+
+.student-info {
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #0077FF;
+    border-radius: 8px;
+}
+
+.student-info p {
+    margin: 5px 0;
+    color: white;
+}
+
+/* Student Class List*/
+.student-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.student-list-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.checkbox-label input {
+    margin: 0;
+    width: 18px;
+    height: 18px;
+}
+
+.checkbox-label span {
+    flex: 1;
+}
+
+
+
+
+/* Floating Message */
+.floating-message {
+    position: fixed;
+    top: 8%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px 30px;
+    border-radius: 8px;
+    border: 2px solid black;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    z-index: 9999;
+    text-align: center;
+    animation: fadeInOut 2s ease forwards;
+    min-width: 250px;
+    max-width: 80%;
+}
+
+.floating-message.success { background: green; }
+.floating-message.error { background: red; }
+.floating-message.info { background: #0077FF; }
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translateX(-50%) scale(0.9); }
+    15% { opacity: 1; transform: translateX(-50%) scale(1); }
+    85% { opacity: 1; transform: translateX(-50%) scale(1); }
+    100% { opacity: 0; transform: translateX(-50%) scale(0.9); }
+}
+
+
+.custom-confirm {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.confirm-content {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    min-width: 280px;
+    border: 2px solid black;
+}
+
+.confirm-content p {
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+.confirm-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.confirm-yes {
+    background: #f44336;
+    color: white;
+    border: 2px solid black;
+    padding: 8px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.confirm-no {
+    background: #9e9e9e;
+    color: white;
+    border: 2px solid black;
+    padding: 8px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* School-wide Attendance Summary Cards */
+.summary-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.summary-program-card {
+    background: white;
+    border: 2px solid black;
+    border-radius: 12px;
+    padding: 15px;
+}
+
+.summary-program-card .program-icon {
+    font-size: 28px;
+    margin-bottom: 5px;
+}
+
+.summary-program-card .program-name {
+    font-size: 18px;
+    font-weight: bold;
+    color: #0077FF;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid black;
+}
+
+.summary-program-card .program-stats {
+    font-size: 12px;
+    color: black;
+    margin-bottom: 8px;
+}
+
+.summary-program-card .program-stats span {
+    font-weight: bolder;
+    color: black;
+}
+
+.attendance-breakdown {
+    display: flex;
+    gap: 15px;
+    margin: 10px 0;
+    padding: 8px 0;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+}
+
+.breakdown-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.breakdown-present { color: green; }
+.breakdown-late { color: orange; }
+.breakdown-absent { color: red; }
+
+.program-rate {
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    margin: 10px 0;
+}
+
+.progress-bar-container {
+    background-color: #e0e0e0;
+    border-radius: 10px;
+    height: 8px;
+    margin: 10px 0;
+    overflow: hidden;
+}
+
+.progress-bar {
+    background-color: #4CAF50;
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+}
+
+.rate-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
+}
+
+.rate-good { background-color: #4CAF50; color: white; }
+.rate-warning { background-color: #FFC107; color: black; }
+.rate-critical { background-color: #f44336; color: white; }
+
+/* System Configuration - Flex Layout */
+.config-row {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.policy-group {
+    flex: 1;
+    min-width: 250px;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    border: 2px solid black;
+}
+
+.policy-group label {
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.policy-input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.policy-input {
+    width: 80px;
+    padding: 8px;
+    border: 2px solid black;
+    border-radius: 8px;
+}
+
+.policy-description {
+    font-size: 11px;
+    color: black;
+    margin-top: 5px;
+}
+
+.config-save-btn {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.config-save-btn button {
+    background-color: #0077FF;
+    color: white;
+    border: 2px solid black;
+    padding: 8px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* Audit Trail Table */
+.audit-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.audit-table th {
+    background-color: #0077FF;
+    color: white;
+    padding: 10px 8px;
+    text-align: center;
+
+}
+
+.audit-table td {
+    padding: 8px;
+    font-size: 12px;
+    vertical-align: top;
+ 
+}
+
+.audit-table .no-logs {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
