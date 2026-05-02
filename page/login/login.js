@@ -96,9 +96,9 @@ loginBtn.addEventListener('click', async () => {
         }
         
         if (data.role === 'super_admin') {
-            window.location.href = '/page/super_admin/superAdminDashboard.html'
+            window.location.href = '/page/super_admin/superAdminDashBoard.html'
         } else if (data.role === 'admin') {
-            window.location.href = '/page/admin/adminDashboard.html'
+            window.location.href = '/page/admin/adminDashBoard.html'
         } else if (data.role === 'teacher') {
             window.location.href = '/page/teacher/teacherClassList.html'
         } else if (data.role === 'student') {
