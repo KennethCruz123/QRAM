@@ -13,7 +13,7 @@ const userName = sessionStorage.getItem('userName')
 // Check if logged in and is student
 if (!userId || userRole !== 'student') {
     alert('Please login as student')
-    window.location.href = 'login.html'
+    window.location.href = '/page/login/login.html'
 }
 
 // Display student name

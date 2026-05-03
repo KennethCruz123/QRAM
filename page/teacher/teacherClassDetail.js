@@ -67,7 +67,7 @@ const teacherId = sessionStorage.getItem('userId')
 const userRole = sessionStorage.getItem('userRole')
 
 if (!teacherId || userRole !== 'teacher') {
-    window.location.href = 'login.html'
+    window.location.href = '/page/login/login.html'
 }
 
 document.getElementById('teacherName').textContent = teacherName || 'Teacher'
@@ -81,7 +81,7 @@ document.getElementById('backBtn').addEventListener('click', () => {
 // Logout
 document.getElementById('logoutBtn').addEventListener('click', () => {
     sessionStorage.clear()
-    window.location.href = 'login.html'
+    window.location.href = '/page/login/login.html'
 })
 
 let classData = null
