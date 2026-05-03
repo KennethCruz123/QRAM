@@ -13,7 +13,7 @@ const userRole = sessionStorage.getItem('userRole')
 
 // Verify login
 if (!studentId || userRole !== 'student') {
-    window.location.href = 'login.html'
+    window.location.href = '/page/login/login.html'
 }
 
 document.getElementById('studentName').textContent = studentName || 'Student'
