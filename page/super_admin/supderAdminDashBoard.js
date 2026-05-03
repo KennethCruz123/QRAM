@@ -409,7 +409,8 @@ function getFilteredAndSortedClasses() {
         filteredClasses = filteredClasses.filter(classItem => 
             classItem.id.toString().includes(searchLower) ||
             (classItem.subject && classItem.subject.toLowerCase().includes(searchLower)) ||
-            (classItem.teacherName && classItem.teacherName.toLowerCase().includes(searchLower))
+            (classItem.teacherName && classItem.teacherName.toLowerCase().includes(searchLower)) ||
+            (classItem.program && classItem.program.toLowerCase().includes(searchLower)) 
         )
     }
     

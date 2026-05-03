@@ -376,6 +376,7 @@ function getFilteredAndSortedClasses() {
     // Make a copy of all Classes
     let filteredClasses = [...allClasses]
     
+    
     // Apply Searching Filter 
     if (classSearchTerm) {
         const searchLower = classSearchTerm.toLowerCase()
@@ -384,7 +385,8 @@ function getFilteredAndSortedClasses() {
         filteredClasses = filteredClasses.filter(classItem => 
             classItem.id.toString().includes(searchLower) ||
             (classItem.subject && classItem.subject.toLowerCase().includes(searchLower)) ||
-            (classItem.teacherName && classItem.teacherName.toLowerCase().includes(searchLower))
+            (classItem.teacherName && classItem.teacherName.toLowerCase().includes(searchLower)) ||
+            (classItem.program && classItem.program.toLowerCase().includes(searchLower)) 
         )
     }
     
