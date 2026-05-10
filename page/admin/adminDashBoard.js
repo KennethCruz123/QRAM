@@ -1684,61 +1684,124 @@ if (classSortSelect) {
 
 
 // ========== SCHOOL-WIDE ATTENDANCE SUMMARY ==========
+// ========== SCHOOL-WIDE ATTENDANCE SUMMARY WITH DONUT CHARTS ==========
+
+let attendanceCharts = {}
 
 async function loadAttendanceSummary() {
     const container = document.getElementById('attendanceSummaryContainer')
     container.innerHTML = '<div style="text-align: center; padding: 40px;">Loading attendance data...</div>'
     
     try {
-        // Get all unique programs from students
-        const { data: programs } = await supabase
-            .from('users')
-            .select('program')
-            .eq('role', 'student')
-            .not('program', 'is', null)
+        // Define all programs
+        const allPrograms = ['BSIT', 'BSCS', 'BSEMC']
         
-        const uniquePrograms = [...new Set(programs.map(p => p.program).filter(p => p))]
+        let summaryHtml = `<div class="donut-grid" id="donutGrid">`
         
-        if (uniquePrograms.length === 0) {
-            container.innerHTML = '<div style="text-align: center; padding: 40px;">No program data available</div>'
-            return
-        }
+        // Store chart data to create after HTML is inserted
+        const chartsToCreate = []
         
-        let summaryHtml = '<div class="summary-cards-container">'
-        
-        for (const program of uniquePrograms) {
-            // Get all students in this program
+        for (const program of allPrograms) {
+            // Get students in this program
             const { data: students } = await supabase
                 .from('users')
                 .select('id')
                 .eq('role', 'student')
                 .eq('program', program)
             
-            const studentIds = students.map(s => s.id)
+            const studentIds = students?.map(s => s.id) || []
+            const studentCount = studentIds.length
             
-            if (studentIds.length === 0) continue
-            
-            // Get all classes for this program
+            // Get classes - include classes with this SPECIFIC program OR NULL (all programs)
             const { data: classes } = await supabase
                 .from('classes')
                 .select('id')
-                .eq('program', program)
+                .or(`program.eq.${program},program.is.null`)
             
-            const classIds = classes.map(c => c.id)
+            const classIds = classes?.map(c => c.id) || []
+            const classCount = classIds.length
             
-            if (classIds.length === 0) continue
+            if (studentCount === 0) {
+                summaryHtml += `
+                    <div class="donut-card">
+                        <h3>${program}</h3>
+                        <div class="no-data-text">No students enrolled</div>
+                        <div class="program-summary-stats">
+                            <div class="program-stat">
+                                <div class="program-stat-label">Total Students</div>
+                                <div class="program-stat-value">0</div>
+                            </div>
+                            <div class="program-stat">
+                                <div class="program-stat-label">Total Classes</div>
+                                <div class="program-stat-value">0</div>
+                            </div>
+                            <div class="program-stat">
+                                <div class="program-stat-label">Attendance Rate</div>
+                                <div class="program-stat-value">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                `
+                continue
+            }
             
-            // Get all sessions for these classes
+            if (classCount === 0) {
+                summaryHtml += `
+                    <div class="donut-card">
+                        <h3>${program}</h3>
+                        <div class="no-data-text">No classes available</div>
+                        <div class="program-summary-stats">
+                            <div class="program-stat">
+                                <div class="program-stat-label">Total Students</div>
+                                <div class="program-stat-value">${studentCount}</div>
+                            </div>
+                            <div class="program-stat">
+                                <div class="program-stat-label">Total Classes</div>
+                                <div class="program-stat-value">0</div>
+                            </div>
+                            <div class="program-stat">
+                                <div class="program-stat-label">Attendance Rate</div>
+                                <div class="program-stat-value">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                `
+                continue
+            }
+            
+            // Get sessions for these classes
             const { data: sessions } = await supabase
                 .from('sessions')
                 .select('id')
                 .in('class_id', classIds)
             
-            const sessionIds = sessions.map(s => s.id)
+            const sessionIds = sessions?.map(s => s.id) || []
             
-            if (sessionIds.length === 0) continue
+            if (sessionIds.length === 0) {
+                summaryHtml += `
+                    <div class="donut-card">
+                        <h3>${program}</h3>
+                        <div class="no-data-text">No sessions created</div>
+                        <div class="program-summary-stats">
+                            <div class="program-stat">
+                                <div class="program-stat-label">Total Students</div>
+                                <div class="program-stat-value">${studentCount}</div>
+                            </div>
+                            <div class="program-stat">
+                                <div class="program-stat-label">Total Classes</div>
+                                <div class="program-stat-value">${classCount}</div>
+                            </div>
+                            <div class="program-stat">
+                                <div class="program-stat-label">Attendance Rate</div>
+                                <div class="program-stat-value">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                `
+                continue
+            }
             
-            // Get all attendance records
+            // Get attendance records
             const { data: attendances } = await supabase
                 .from('attendances')
                 .select('status')
@@ -1747,44 +1810,111 @@ async function loadAttendanceSummary() {
             
             let present = 0, late = 0, absent = 0
             
-            attendances.forEach(a => {
-                if (a.status === 'present') present++
-                else if (a.status === 'late') late++
-                else if (a.status === 'absent') absent++
-            })
+            if (attendances) {
+                attendances.forEach(a => {
+                    if (a.status === 'present') present++
+                    else if (a.status === 'late') late++
+                    else if (a.status === 'absent') absent++
+                })
+            }
             
             const total = present + late + absent
             const rate = total > 0 ? Math.round(((present + late) / total) * 100) : 0
             
-            let rateClass = rate >= 75 ? 'rate-good' : (rate >= 50 ? 'rate-warning' : 'rate-critical')
-            
+            const chartId = `donut_${program.replace(/[^a-zA-Z0-9]/g, '_')}`
             
             summaryHtml += `
-                <div class="summary-program-card">
-                    <div class="program-name">${program}</div>
-                    <div class="program-stats">
-                        Students: <span>${studentIds.length}</span> | Classes: <span>${classIds.length}</span>
+                <div class="donut-card" data-program="${program}">
+                    <h3>${program}</h3>
+                    <div class="donut-chart-wrapper">
+                        <canvas id="${chartId}" class="donut-chart" width="140" height="140"></canvas>
                     </div>
-                    <div class="attendance-breakdown">
-                        <span class="breakdown-item breakdown-present">Present: ${present}</span>
-                        <span class="breakdown-item breakdown-late">Late: ${late}</span>
-                        <span class="breakdown-item breakdown-absent">Absent: ${absent}</span>
-                    </div>
-                    <div class="program-rate">${rate}%</div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" style="width: ${rate}%;"></div>
+                    <div class="program-summary-stats">
+                        <div class="program-stat">
+                            <div class="program-stat-label">Total Students</div>
+                            <div class="program-stat-value">${studentCount}</div>
+                        </div>
+                        <div class="program-stat">
+                            <div class="program-stat-label">Total Classes</div>
+                            <div class="program-stat-value">${classCount}</div>
+                        </div>
+                        <div class="program-stat">
+                            <div class="program-stat-label">Attendance Rate</div>
+                            <div class="program-stat-value">${rate}%</div>
+                        </div>
                     </div>
                 </div>
             `
+            
+            // Store data for chart creation
+            chartsToCreate.push({ chartId, present, late, absent })
         }
         
         summaryHtml += '</div>'
         container.innerHTML = summaryHtml
         
+        // Create charts after DOM is ready
+        setTimeout(() => {
+            chartsToCreate.forEach(({ chartId, present, late, absent }) => {
+                createDonutChart(chartId, present, late, absent)
+            })
+        }, 100)
+        
     } catch (error) {
         console.error('Error loading attendance summary:', error)
         container.innerHTML = '<div style="text-align: center; padding: 40px; color: red;">Error loading attendance data</div>'
     }
+}
+
+// Create donut chart
+function createDonutChart(canvasId, present, late, absent) {
+    const canvas = document.getElementById(canvasId)
+    if (!canvas) {
+        setTimeout(() => {
+            const retryCanvas = document.getElementById(canvasId)
+            if (retryCanvas) {
+                createDonutChart(canvasId, present, late, absent)
+            }
+        }, 50)
+        return
+    }
+    
+    if (attendanceCharts[canvasId]) {
+        attendanceCharts[canvasId].destroy()
+    }
+    
+    const ctx = canvas.getContext('2d')
+    
+    attendanceCharts[canvasId] = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Present', 'Late', 'Absent'],
+            datasets: [{
+                data: [present, late, absent],
+                backgroundColor: ['#4CAF50', '#FFC107', '#f44336'],
+                borderWidth: 2,
+                cutout: '65%'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (tooltipItem) => {
+                            const value = tooltipItem.raw
+                            const total = present + late + absent
+                            const percentage = total > 0 ? Math.round((value / total) * 100) : 0
+                            const label = tooltipItem.label
+                            return `${label}: ${value} (${percentage}%)`
+                        }
+                    }
+                }
+            }
+        }
+    })
 }
 
 

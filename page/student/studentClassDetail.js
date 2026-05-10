@@ -361,6 +361,7 @@ async function onScanSuccess(decodedText) {
         }, 1500)
         closeScanner()
         await loadAttendanceHistory()
+        await checkAndDisplayWarning() 
     } else {
         document.getElementById('scanResult').innerHTML = `<span style="color: red; font-weight: bold;">Error marking attendance: ${error.message}</span>`
         setTimeout(() => {
@@ -392,10 +393,141 @@ document.getElementById('scanSessionBtn').addEventListener('click', () => {
     setTimeout(() => startScanner(), 500)
 })
 
+
+
+
+
+
+// Calculate sessions per week for a class
+function getSessionsPerWeek(classItem) {
+    if (!classItem || !classItem.class_day) return 2 // Default to 2
+    
+    const daysMap = {
+        'M': 'Monday', 'T': 'Tuesday', 'W': 'Wednesday', 
+        'Th': 'Thursday', 'F': 'Friday', 'S': 'Saturday'
+    }
+    
+    const days = classItem.class_day || []
+    return days.length // Returns number of days per week (1 or 2)
+}
+
+// Get allowed absences based on sessions per week
+function getAllowedAbsences(sessionsPerWeek) {
+    if (sessionsPerWeek === 1) return 3  // 3 total absences allowed
+    return 6  // 6 total absences allowed for 2 sessions/week
+}
+
+// Get warning threshold (when to show warning)
+function getWarningThreshold(sessionsPerWeek) {
+    if (sessionsPerWeek === 1) return 2  // Warn at 2 absences (1 left)
+    return 4  // Warn at 4 absences (2 left)
+}
+
+
+// Check and display absence warning
+async function checkAndDisplayWarning() {
+    try {
+        if (!classData) {
+            console.log("classData not loaded yet");
+            return;
+        }
+        
+        // Calculate sessions per week based on class days
+        const sessionsPerWeek = classData.class_day ? classData.class_day.length : 2
+        console.log("Sessions per week:", sessionsPerWeek);
+        
+        // Get all sessions for this class
+        const { data: sessions } = await supabase
+            .from('sessions')
+            .select('id')
+            .eq('class_id', parseInt(classId))
+        
+        if (!sessions || sessions.length === 0) {
+            console.log("No sessions found");
+            return
+        }
+        
+        const sessionIds = sessions.map(s => s.id)
+        
+        // Get student's attendance records
+        const { data: attendances } = await supabase
+            .from('attendances')
+            .select('status')
+            .in('session_id', sessionIds)
+            .eq('student_id', parseInt(studentId))
+        
+        // Count absences
+        let absenceCount = 0
+        if (attendances) {
+            absenceCount = attendances.filter(a => a.status === 'absent').length
+        }
+        
+        console.log("Absence count:", absenceCount);
+        
+        const warningBanner = document.getElementById('warningBanner')
+        const warningMessage = document.getElementById('warningMessage')
+        
+        if (!warningBanner) return;
+        
+        if (sessionsPerWeek === 1) {
+            // 1 session per week (max 3 absences)
+            if (absenceCount === 1) {
+                // Yellow warning at 1 absence
+                warningBanner.style.display = 'block'
+                warningMessage.innerHTML = `WARNING: You have ${absenceCount} absence out of 3 allowed. You have 2 remaining absences before failing.`
+                warningBanner.className = 'warning-banner warning-level-1'
+            } 
+            else if (absenceCount === 2) {
+                // Red warning at 2 absences
+                warningBanner.style.display = 'block'
+                warningMessage.innerHTML = `CRITICAL: You have ${absenceCount} absences out of 3 allowed. Only 1 remaining absence before failing!`
+                warningBanner.className = 'warning-banner warning-level-2'
+            }
+            else if (absenceCount >= 3) {
+                // Critical at 3+ absences (failing)
+                warningBanner.style.display = 'block'
+                warningMessage.innerHTML = `CRITICAL: You have reached ${absenceCount} absence(s) out of 3 allowed! You are at risk of failing!`
+                warningBanner.className = 'warning-banner warning-level-2'
+            }
+            else {
+                warningBanner.style.display = 'none'
+            }
+        } else {
+            // 2 sessions per week (max 6 absences)
+            if (absenceCount === 2) {
+                // Yellow warning at 2 absences
+                warningBanner.style.display = 'block'
+                warningMessage.innerHTML = `WARNING: You have ${absenceCount} absences out of 6 allowed. You have 4 remaining absences before failing.`
+                warningBanner.className = 'warning-banner warning-level-1'
+            }
+            else if (absenceCount === 4) {
+                // Red warning at 4 absences
+                warningBanner.style.display = 'block'
+                warningMessage.innerHTML = `CRITICAL: You have ${absenceCount} absences out of 6 allowed. Only 2 remaining absences before failing!`
+                warningBanner.className = 'warning-banner warning-level-2'
+            }
+            else if (absenceCount >= 6) {
+                // Critical at 6+ absences (failing)
+                warningBanner.style.display = 'block'
+                warningMessage.innerHTML = `CRITICAL: You have reached ${absenceCount} absence(s) out of 6 allowed! You are at risk of failing!`
+                warningBanner.className = 'warning-banner warning-level-2'
+            }
+            else {
+                warningBanner.style.display = 'none'
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error checking attendance warning:', error)
+    }
+}
+
+
 // Initialize
 async function init() {
     await loadClassDetails()
     await loadAttendanceHistory()
+    await checkAndDisplayWarning() 
 }
 
 init()

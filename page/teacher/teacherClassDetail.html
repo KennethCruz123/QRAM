@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="teachercClassDetail.css">
     <link rel="shortcut icon" href="/asset/image/Logo_QRAM.png" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -45,6 +46,11 @@
             <div class="summary-header">
                 <h4>Attendance Overview</h4>
             </div>
+
+            <div class="donut-chart-container" style="text-align: center; margin: 15px 0;">
+                <canvas id="attendanceDonutChart" style="max-width: 100px; max-height: 100px; margin: 0 auto;"></canvas>
+            </div>
+
             <div class="summary-stats">
                 <div class="stat-item">
                     <span class="stat-label">Total Students:</span>
@@ -59,16 +65,16 @@
                     <span class="stat-label">Attendance Rate:</span>
                     <span class="stat-value" id="attendanceRate">0%</span>
                 </div>
-                
-                <div class="stat-item">
+
+                <div class="stat-item" style="display: none;">
                     <span class="stat-label">Present:</span>
                     <span class="stat-value" id="totalPresent">0</span>
                 </div>
-                <div class="stat-item">
+                <div class="stat-item" style="display: none;">
                     <span class="stat-label">Late:</span>
                     <span class="stat-value" id="totalLate">0</span>
                 </div>
-                <div class="stat-item">
+                <div class="stat-item" style="display: none;">
                     <span class="stat-label">Absent:</span>
                     <span class="stat-value" id="totalAbsent">0</span>
                 </div>

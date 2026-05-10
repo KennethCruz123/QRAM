@@ -74,17 +74,19 @@ async function loadTeacherClasses() {
             
             // Build Class Card
             container.innerHTML += `
-                <div class="class-card" onclick="goToClass('${classItem.id}', '${classItem.subject}')">
+                <div class="class-card">
                     <div class="class-color-bar" style="background-color: ${classColor};"></div>
                     <div class="class-content">
                         <div class="class-subject">${classItem.subject || 'N/A'}</div>
                         <div class="class-detail"><strong>Class Code:</strong> ${classItem.id}</div>
-                        <div class="class-detail"><strong>Program:</strong> ${classItem.program}</div>
+                        <div class="class-detail"><strong>Program:</strong> ${classItem.program || 'N/A'}</div>
                         <div class="class-detail"><strong>Class Level:</strong> ${classItem.class_level || 'N/A'}</div>
                         <div class="class-detail"><strong>Class Block:</strong> ${blocksDisplay}</div>
                         <div class="class-detail"><strong>Class Day:</strong> ${daysDisplay}</div>
                         <div class="class-detail"><strong>Class Time:</strong> ${formatTime(classItem.class_time_start)} - ${formatTime(classItem.class_time_end)}</div>
                         <div class="class-detail"><strong>Class Loc:</strong> ${location}</div>
+                        
+                        <button class="enter-class-btn" onclick="goToClass('${classItem.id}', '${classItem.subject}')">Enter Class</button>
                     </div>
                 </div>
             `

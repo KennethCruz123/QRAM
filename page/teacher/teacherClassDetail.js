@@ -192,10 +192,11 @@ async function renderMatrix() {
     const tbody = document.getElementById('tableBody')
     
     if (dates.length === 0) {
-        thead.innerHTML = '<tr><th>Student</th></tr>'
-        tbody.innerHTML = '<tr><td colspan="10">No sessions created yet. Create a session above!</td></tr>'
+        thead.innerHTML = '<tr><th>Student</th><th>Status</th><tr>'
+        tbody.innerHTML = '<tr><td colspan="3">No sessions created yet. Create a session above!</td></tr>'
         return
     }
+
     
     const sessionIds = sessions.map(s => s.id)
     const { data: allAttendance } = await supabase
@@ -213,7 +214,7 @@ async function renderMatrix() {
     }
     
     // Build header
-    let headerHtml = '<tr><th>Student</th>'
+    let headerHtml = '<tr><th>Student</th><th>Status</th>'
     for (const date of dates) {
         headerHtml += `<th>
             ${date}<br>
@@ -227,10 +228,69 @@ async function renderMatrix() {
     headerHtml += '</tr>'
     thead.innerHTML = headerHtml
     
-    // Build body 
+    // Build body
     tbody.innerHTML = ''
     for (const student of students) {
-        let rowHtml = `<tr><td class="student-name">${student.name}</td>`
+        // Calculate remaining absences for this student
+        let studentAbsenceCount = 0
+        let maxAbsences = 6 // Default for 2 sessions/week
+        
+        // Calculate sessions per week for this class
+        const sessionsPerWeek = classData && classData.class_day ? classData.class_day.length : 2
+        maxAbsences = sessionsPerWeek === 1 ? 3 : 6
+        
+        // Count absences for this student across all sessions
+        for (const date of dates) {
+            const session = sessions.find(s => s.session_date === date)
+            if (session) {
+                const key = `${session.id}_${student.id}`
+                const recordStatus = attendanceMap[key]
+                if (!recordStatus || recordStatus === 'absent') {
+                    studentAbsenceCount++
+                }
+            }
+        }
+        
+        const remainingAbsences = maxAbsences - studentAbsenceCount
+        let statusClass = ''
+
+        // Calculate present, late, absent counts for this student
+        let studentPresentCount = 0
+        let studentLateCount = 0
+        let studentAbsenceCountTotal = 0
+
+        for (const date of dates) {
+            const session = sessions.find(s => s.session_date === date)
+            if (session) {
+                const key = `${session.id}_${student.id}`
+                const recordStatus = attendanceMap[key]
+                if (recordStatus === 'present') {
+                    studentPresentCount++
+                } else if (recordStatus === 'late') {
+                    studentLateCount++
+                } else if (recordStatus === 'absent') {
+                    studentAbsenceCountTotal++
+                } else if (!recordStatus) {
+                    // No record means absent
+                    studentAbsenceCountTotal++
+                }
+            }
+        }
+
+        // Set row background color based on remaining absences
+        if (remainingAbsences === 1) {
+            statusClass = 'status-danger'
+        } else {
+            statusClass = 'status-safe'
+        }
+
+        // Build the status cell with colored numbers
+        const statusText = `<span class="statusSummary" style="color: green; font-weight: bold;">${studentPresentCount}</span> ` +
+                        `<span class="statusSummary" style="color: gold; font-weight: bold;">${studentLateCount}</span> ` +
+                        `<span class="statusSummary" style="color: red; font-weight: bold;">${studentAbsenceCountTotal}</span> ` +
+                        `<span class="statusSummary" style="color: red;">/ ${maxAbsences}</span>`
+
+        let rowHtml = `<tr><td class="student-name">${student.name}</td><td class="${statusClass}">${statusText}</td>`
         
         for (const date of dates) {
             const session = sessions.find(s => s.session_date === date)
@@ -252,7 +312,6 @@ async function renderMatrix() {
         rowHtml += '</tr>'
         tbody.innerHTML += rowHtml
     }
-    console.log(`Matrix rendered: ${students.length} students, ${dates.length} dates (optimized - 1 attendance query)`)
 }
 
 // Create session
@@ -756,6 +815,7 @@ async function updateAttendanceSummary() {
     document.getElementById('totalLate').textContent = totalLate
     document.getElementById('totalAbsent').textContent = totalAbsent
     document.getElementById('attendanceRate').textContent = `${attendanceRate}%`
+    updateAttendanceChart(totalPresent, totalLate, totalAbsent, totalRecords)
 }
 
 // Download all attendance records as CSV
@@ -777,26 +837,23 @@ async function downloadAllAttendance() {
         // Get all attendance records
         const { data: allAttendance } = await supabase
             .from('attendances')
-            .select('session_id, student_id, status, scan_time')
+            .select('session_id, student_id, status')
             .in('session_id', sessionIds)
         
-        // Create a map for quick lookup: sessionId_studentId -> status, scan_time
+        // Create a map for quick lookup: sessionId_studentId -> status
         const attendanceMap = {}
         if (allAttendance) {
             allAttendance.forEach(record => {
                 const key = `${record.session_id}_${record.student_id}`
-                attendanceMap[key] = {
-                    status: record.status === 'present' ? 'P' : (record.status === 'late' ? 'L' : 'A'),
-                    scan_time: record.scan_time || ''
-                }
+                attendanceMap[key] = record.status
             })
         }
         
         // Prepare CSV data
         const csvRows = []
         
-        // Header row
-        const headers = ['Student ID', 'Student Name']
+        // Header row - Put summary columns FIRST, then session dates
+        const headers = ['Student ID', 'Student Name', 'Total Present', 'Total Late', 'Total Absent']
         for (const session of sessions) {
             headers.push(`${session.session_date}`)
         }
@@ -804,14 +861,31 @@ async function downloadAllAttendance() {
         
         // Data rows for each student
         for (const student of students) {
-            const row = [student.id, student.name]
+            // Track counts for this student
+            let presentCount = 0
+            let lateCount = 0
+            let absentCount = 0
             
+            // Get status for each session (to count and also to add to row)
+            const sessionStatuses = []
             for (const session of sessions) {
                 const key = `${session.id}_${student.id}`
-                const attendance = attendanceMap[key]
-                const status = attendance ? attendance.status : 'A'
-                row.push(status)
+                const status = attendanceMap[key]
+                
+                if (status === 'present') {
+                    sessionStatuses.push('P')
+                    presentCount++
+                } else if (status === 'late') {
+                    sessionStatuses.push('L')
+                    lateCount++
+                } else {
+                    sessionStatuses.push('A')
+                    absentCount++
+                }
             }
+            
+            // Build row: Student ID, Student Name, counts FIRST, then session statuses
+            const row = [student.id, student.name, presentCount, lateCount, absentCount, ...sessionStatuses]
             csvRows.push(row.join(','))
         }
         
@@ -821,7 +895,7 @@ async function downloadAllAttendance() {
         const link = document.createElement('a')
         const url = URL.createObjectURL(blob)
         link.href = url
-        link.setAttribute('download', `attendance_${classId}_${new Date().toISOString().slice(0,19)}.csv`)
+        link.setAttribute('download', `attendance_class_${classId}.csv`)
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
@@ -833,7 +907,6 @@ async function downloadAllAttendance() {
         showError('Error downloading attendance')
     }
 }
-
 
 
 
@@ -872,20 +945,67 @@ async function loadLateThreshold() {
 
 
 
+// Create donut chart for attendance rate
+// Create donut chart for attendance rate
+let attendanceChart = null
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+function updateAttendanceChart(presentCount, lateCount, absentCount, totalRecords) {
+    const ctx = document.getElementById('attendanceDonutChart').getContext('2d')
+    
+    if (attendanceChart) {
+        attendanceChart.destroy()
+    }
+    
+    // Calculate percentages
+    let presentPercent = 0
+    let latePercent = 0
+    let absentPercent = 0
+    
+    if (totalRecords > 0) {
+        presentPercent = Math.round((presentCount / totalRecords) * 100)
+        latePercent = Math.round((lateCount / totalRecords) * 100)
+        absentPercent = 100 - presentPercent - latePercent
+    }
+    
+    attendanceChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Present', 'Late', 'Absent'],
+            datasets: [{
+                data: [presentCount, lateCount, absentCount],
+                backgroundColor: ['#4CAF50', '#FFC107', '#f44336'],
+                borderWidth: 2,
+                cutout: '65%'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    position: 'average',
+                    yAlign: 'top',
+                    xAlign: 'center',
+                    caretPadding: 10,
+                    bodyFont: { size: 9 },
+                    titleFont: { size: 9 },
+                    padding: 4,
+                    cornerRadius: 3,
+                    callbacks: {
+                        label: (tooltipItem) => {
+                            const value = tooltipItem.raw
+                            const total = presentCount + lateCount + absentCount
+                            const percentage = total > 0 ? Math.round((value / total) * 100) : 0
+                            const label = tooltipItem.label
+                            return `${label}: ${value} (${percentage}%)`
+                        }
+                    }
+                }
+            }
+        }
+    })
+}
 
 
 
@@ -900,7 +1020,9 @@ async function init() {
     await renderMatrix()
     await loadLateThreshold()
     await updateAttendanceSummary()
-
+    if (typeof Chart !== 'undefined') {
+    // Chart will be created when updateAttendanceSummary runs
+    }
 }
 
 document.getElementById('downloadAttendanceBtn').addEventListener('click', downloadAllAttendance)

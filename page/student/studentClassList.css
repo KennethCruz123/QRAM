@@ -103,7 +103,6 @@ body {
 .class-card {
     background: white;
     border-radius: 12px;
-    cursor: pointer;
     border: 2px solid black;
     display: flex;
     overflow: hidden;
@@ -162,6 +161,24 @@ body {
 
 .class-detail-full:last-child{
     margin-bottom: 0px;
+}
+
+.class-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.enter-class-btn {
+    background-color: #0077FF;
+    color: white;
+    border: 2px solid black;
+    border-radius: 8px;
+    padding: 6px 12px;
+    margin-top: 10px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    width: auto;
 }
 
 .loading, .no-classes {

@@ -232,3 +232,30 @@ body {
         font-size: 10px;
     }
 }
+
+
+/* Warning Banner - Yellow (Level 1) */
+.warning-banner.warning-level-1 {
+    background-color: white;
+    border: 2px solid yellow;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    text-align: center;
+    font-weight: bold;
+    color: darkgoldenrod;
+    font-size: 12px;
+}
+
+/* Warning Banner - Red (Level 2) */
+.warning-banner.warning-level-2 {
+    background-color: white;
+    border: 2px solid red;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    text-align: center;
+    font-weight: bold;
+    color: red;
+    font-size: 12px;
+}

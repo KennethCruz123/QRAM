@@ -830,3 +830,95 @@ th {
     border-radius: 6px;
     cursor: pointer;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ========== ATTENDANCE SUMMARY DONUT CHARTS ========== */
+
+.donut-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.donut-card {
+    background: white;
+    border: 2px solid black;
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+}
+
+.donut-card h3 {
+    font-size: 18px;
+    font-weight: bold;
+    color: #0077FF;
+    margin-bottom: 10px;
+    border-bottom: 1px solid black;
+    padding-bottom: 8px;
+}
+
+.donut-chart-wrapper {
+    display: flex;
+    justify-content: center;
+    margin: 15px 0;
+}
+
+canvas.donut-chart {
+    max-width: 140px;
+    max-height: 140px;
+}
+
+.no-data-text {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+/* Program Summary Stats */
+.program-summary-stats {
+    background: #0077FF;
+    border: 2px solid black;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 15px;
+    display: flex;
+    justify-content: space-around;
+    gap: 8px;
+}
+
+.program-stat {
+    flex: 1;
+    text-align: center;
+}
+
+.program-stat-label {
+    font-size: 10px;
+    color: white;
+    margin-bottom: 3px;
+}
+
+.program-stat-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+}

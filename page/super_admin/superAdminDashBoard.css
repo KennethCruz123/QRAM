@@ -143,6 +143,41 @@ th {
 
 
 
+/* Audit Trail Table */
+.audit-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.audit-table th {
+    background-color: #0077FF;
+    color: white;
+    padding: 10px 8px;
+    text-align: center;
+
+}
+
+.audit-table td {
+    padding: 8px;
+    font-size: 12px;   /* Smaller so it fits */
+    vertical-align: top;
+}
+
+.audit-table .no-logs {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+
+
+
+
+
+
+
+
 /* Action Buttons */
 /* Base Design */
 .action-buttons {
@@ -839,30 +874,104 @@ th {
     cursor: pointer;
 }
 
-/* Audit Trail Table */
-.audit-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ========== ATTENDANCE SUMMARY DONUT CHARTS ========== */
+
+.donut-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 20px;
 }
 
-.audit-table th {
-    background-color: #0077FF;
-    color: white;
-    padding: 10px 8px;
+.donut-card {
+    background: white;
+    border: 2px solid black;
+    border-radius: 12px;
+    padding: 15px;
     text-align: center;
-
 }
 
-.audit-table td {
-    padding: 8px;
-    font-size: 12px;
-    vertical-align: top;
- 
+.donut-card h3 {
+    font-size: 18px;
+    font-weight: bold;
+    color: #0077FF;
+    margin-bottom: 10px;
+    border-bottom: 1px solid black;
+    padding-bottom: 8px;
 }
 
-.audit-table .no-logs {
+.donut-chart-wrapper {
+    display: flex;
+    justify-content: center;
+    margin: 15px 0;
+}
+
+canvas.donut-chart {
+    max-width: 140px;
+    max-height: 140px;
+}
+
+.no-data-text {
     text-align: center;
-    padding: 40px;
+    padding: 20px;
     color: #666;
+}
+
+/* Program Summary Stats */
+.program-summary-stats {
+    background: #0077FF;
+    border: 2px solid black;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 15px;
+    display: flex;
+    justify-content: space-around;
+    gap: 8px;
+}
+
+.program-stat {
+    flex: 1;
+    text-align: center;
+}
+
+.program-stat-label {
+    font-size: 10px;
+    color: white;
+    margin-bottom: 3px;
+}
+
+.program-stat-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
 }

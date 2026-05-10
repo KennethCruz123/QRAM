@@ -195,7 +195,7 @@ async function loadStudentClasses() {
             
             // Build class card
             container.innerHTML += `
-                <div class="class-card" onclick="goToClass('${classItem.id}', '${classItem.subject}')">
+                <div class="class-card">
                     <div class="class-color-bar" style="background-color: ${classColor};"></div>
                     <div class="class-content">
                         <div class="class-subject">${classItem.subject || 'N/A'}</div>
@@ -218,6 +218,9 @@ async function loadStudentClasses() {
                         <div class="class-detail-full"><strong>Class Day:</strong> ${daysDisplay}</div>
                         <div class="class-detail-full"><strong>Class Time:</strong> ${formatTime(classItem.class_time_start)} - ${formatTime(classItem.class_time_end)}</div>
                         <div class="class-detail-full"><strong>Class Loc:</strong> ${location}</div>
+                        
+                        
+                        <button class="enter-class-btn" onclick="goToClass('${classItem.id}', '${classItem.subject}')">Enter Class</button>
                     </div>
                 </div>
             `
@@ -230,6 +233,7 @@ async function loadStudentClasses() {
 
 document.getElementById('showAttendanceSummaryBtn').addEventListener('click', showAttendanceSummary)
 
+// Show Attendance Summary Modal
 // Show Attendance Summary Modal
 async function showAttendanceSummary() {
     const contentDiv = document.getElementById('attendanceSummaryContent')
@@ -327,10 +331,14 @@ async function showAttendanceSummary() {
             const attended = present + late
             const rate = totalSessions > 0 ? Math.round((attended / totalSessions) * 100) : 0
             
-            // Only show warning if below minimum rate
-            let warningHtml = ''
+            // Calculate sessions per week for max absences
+            const sessionsPerWeek = classItem.class_day ? classItem.class_day.length : 2
+            const maxAbsences = sessionsPerWeek === 1 ? 3 : 6
+            
+            // Only show rate warning if below minimum rate
+            let rateWarningHtml = ''
             if (rate < minRate && totalSessions > 0) {
-                warningHtml = `
+                rateWarningHtml = `
                     <div style="margin-top: 5px; font-size: 11px; color: red; font-weight: bold;">
                         Warning: Below ${minRate}% attendance requirement (${rate}%)
                     </div>
@@ -343,10 +351,10 @@ async function showAttendanceSummary() {
                     <div class="summary-class-stats">
                         <span class="summary-stat summary-stat-present">Present: ${present}</span>
                         <span class="summary-stat summary-stat-late">Late: ${late}</span>
-                        <span class="summary-stat summary-stat-absent">Absent: ${absent}</span>
+                        <span class="summary-stat summary-stat-absent">Absent: ${absent} / ${maxAbsences} max</span>
                         <span class="summary-stat summary-stat-total">Total: ${totalSessions}</span>
                     </div>
-                    ${warningHtml}
+                    ${rateWarningHtml}
                 </div>
             `
         }
