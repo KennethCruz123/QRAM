@@ -2374,6 +2374,976 @@ async function loadAuditLogs() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ========== BULK UPLOAD TEACHERS ==========
+
+// Parse CSV line (handles quoted values and removes empty trailing columns)
+function parseCSVLine(line) {
+    const result = [];
+    let inQuotes = false;
+    let currentCell = '';
+    
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+            inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+            result.push(currentCell);
+            currentCell = '';
+        } else {
+            currentCell += char;
+        }
+    }
+    result.push(currentCell);
+    
+    // Trim each cell and clean
+    const cleaned = result.map(cell => cell.trim().replace(/^'/, ''));
+    
+    // Remove empty trailing columns
+    while (cleaned.length > 0 && cleaned[cleaned.length - 1] === '') {
+        cleaned.pop();
+    }
+    
+    return cleaned;
+}
+
+// Open bulk upload modal
+document.getElementById('addBulkTeacherBtn')?.addEventListener('click', () => {
+    document.getElementById('teacherCsvFile').value = '';
+    document.getElementById('bulkUploadPreview').style.display = 'none';
+    showModal('bulkTeacherModal');
+});
+
+// Preview CSV file when selected
+document.getElementById('teacherCsvFile')?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        const csvText = event.target.result;
+        const lines = csvText.split('\n').filter(line => line.trim());
+        const previewDiv = document.getElementById('bulkUploadPreview');
+        const previewContent = document.getElementById('previewContent');
+        
+        if (lines.length === 0) {
+            previewContent.innerHTML = '<p>No data found</p>';
+            previewDiv.style.display = 'block';
+            return;
+        }
+        
+        // Create table with ALL rows
+        let previewHtml = '<table style="width: 100%; border-collapse: collapse; font-size: 11px;">';
+        
+        lines.forEach((line, idx) => {
+            const cells = parseCSVLine(line);
+            previewHtml += '<tr>';
+            cells.forEach(cell => {
+                let displayCell = cell.replace(/^'/, '');
+                // Truncate long cell values for display
+                if (displayCell.length > 30) {
+                    displayCell = displayCell.substring(0, 27) + '...';
+                }
+                previewHtml += `<td style="border: 1px solid #ddd; padding: 4px;">${displayCell || '&nbsp;'}</td>`;
+            });
+            previewHtml += '</tr>';
+        });
+        
+        previewHtml += '</table>';
+        previewContent.innerHTML = previewHtml;
+        
+        // Make scrollable
+        previewDiv.style.display = 'block';
+        previewDiv.style.maxHeight = '250px';
+        previewDiv.style.overflowY = 'auto';
+    };
+    reader.readAsText(file);
+});
+
+// Process bulk upload
+document.getElementById('confirmBulkUploadBtn')?.addEventListener('click', async () => {
+    const fileInput = document.getElementById('teacherCsvFile');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        showError('Please select a CSV file');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+        const csvText = event.target.result;
+        const lines = csvText.split('\n').filter(line => line.trim());
+        
+        if (lines.length < 2) {
+            showError('CSV file must have a header row and at least one data row');
+            return;
+        }
+        
+        // Parse headers
+        const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase());
+        
+        // Expected headers
+        const expectedHeaders = ['id', 'name', 'email', 'phone', 'password'];
+        const missingHeaders = expectedHeaders.filter(h => !headers.includes(h));
+        
+        if (missingHeaders.length > 0) {
+            showError(`Missing columns: ${missingHeaders.join(', ')}. Required: id, name, email, phone, password`);
+            return;
+        }
+        
+        // Parse data rows
+        const teachers = [];
+        const errors = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+            const values = parseCSVLine(lines[i]);
+            
+            // Create object with headers
+            const teacher = {};
+            headers.forEach((header, idx) => {
+                let value = values[idx] || '';
+                if (value.startsWith("'")) {
+                    value = value.substring(1);
+                }
+                teacher[header] = value;
+            });
+            
+            // Validate required fields
+            if (!teacher.id || !teacher.name || !teacher.email || !teacher.password) {
+                errors.push(`Row ${i}: Missing required fields (id, name, email, password)`);
+                continue;
+            }
+            
+            // Validate ID is number
+            if (isNaN(parseInt(teacher.id))) {
+                errors.push(`Row ${i}: ID must be a number`);
+                continue;
+            }
+            
+            teachers.push({
+                id: parseInt(teacher.id),
+                name: teacher.name,
+                email: teacher.email,
+                phone: teacher.phone || null,  // Phone as-is, no conversion
+                password: teacher.password,
+                role: 'teacher'
+            });
+        }
+        
+        if (errors.length > 0) {
+            showError(`Validation errors:\n${errors.slice(0, 5).join('\n')}`);
+            return;
+        }
+        
+        if (teachers.length === 0) {
+            showError('No valid teachers to upload');
+            return;
+        }
+        
+        // Check for duplicate IDs in the database
+        const teacherIds = teachers.map(t => t.id);
+        const { data: existing } = await supabase
+            .from('users')
+            .select('id')
+            .in('id', teacherIds)
+            .eq('role', 'teacher');
+        
+        const existingIds = existing?.map(e => e.id) || [];
+        
+        if (existingIds.length > 0) {
+            showError(`Teacher IDs already exist: ${existingIds.join(', ')}. Please remove them from CSV.`);
+            return;
+        }
+        
+        // Show loading message
+        showInfo(`Uploading ${teachers.length} teachers...`);
+        
+        // Insert in batches of 100 to avoid timeout
+        const batchSize = 100;
+        let successCount = 0;
+        let failCount = 0;
+        
+        for (let i = 0; i < teachers.length; i += batchSize) {
+            const batch = teachers.slice(i, i + batchSize);
+            const { error } = await supabase.from('users').insert(batch);
+            
+            if (error) {
+                console.error('Batch error:', error);
+                failCount += batch.length;
+            } else {
+                successCount += batch.length;
+            }
+        }
+        
+        if (successCount > 0) {
+            showSuccess(`Successfully added ${successCount} teachers!`);
+            await logAction('BULK_UPLOAD_TEACHERS', `Added ${successCount} teachers via CSV upload`);
+            await loadTeachers();
+            closeModal('bulkTeacherModal');
+            fileInput.value = '';
+            document.getElementById('bulkUploadPreview').style.display = 'none';
+        }
+        
+        if (failCount > 0) {
+            showError(`Failed to add ${failCount} teachers. Check console for details.`);
+        }
+    };
+    
+    reader.readAsText(file);
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ========== BULK UPLOAD STUDENTS ==========
+
+// Open bulk upload modal
+document.getElementById('addBulkStudentBtn')?.addEventListener('click', () => {
+    document.getElementById('studentCsvFile').value = '';
+    document.getElementById('bulkStudentPreview').style.display = 'none';
+    showModal('bulkStudentModal');
+});
+
+// Preview CSV file when selected
+document.getElementById('studentCsvFile')?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        const csvText = event.target.result;
+        const lines = csvText.split('\n').filter(line => line.trim());
+        const previewDiv = document.getElementById('bulkStudentPreview');
+        const previewContent = document.getElementById('studentPreviewContent');
+        
+        if (lines.length === 0) {
+            previewContent.innerHTML = '<p>No data found</p>';
+            previewDiv.style.display = 'block';
+            return;
+        }
+        
+        // Create table with ALL rows
+        let previewHtml = '<table style="width: 100%; border-collapse: collapse; font-size: 11px;">';
+        
+        lines.forEach((line, idx) => {
+            const cells = parseCSVLine(line);
+            previewHtml += '<tr>';
+            cells.forEach(cell => {
+                let displayCell = cell.replace(/^'/, '');
+                if (displayCell.length > 25) {
+                    displayCell = displayCell.substring(0, 22) + '...';
+                }
+                previewHtml += `<td style="border: 1px solid #ddd; padding: 4px;">${displayCell || '&nbsp;'}</td>`;
+            });
+            previewHtml += '</tr>';
+        });
+        
+        previewHtml += '</table>';
+        previewContent.innerHTML = previewHtml;
+        
+        previewDiv.style.display = 'block';
+        previewDiv.style.maxHeight = '250px';
+        previewDiv.style.overflowY = 'auto';
+    };
+    reader.readAsText(file);
+});
+
+// Process bulk upload students
+document.getElementById('confirmBulkStudentBtn')?.addEventListener('click', async () => {
+    const fileInput = document.getElementById('studentCsvFile');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        showError('Please select a CSV file');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+        const csvText = event.target.result;
+        const lines = csvText.split('\n').filter(line => line.trim());
+        
+        if (lines.length < 2) {
+            showError('CSV file must have a header row and at least one data row');
+            return;
+        }
+        
+        // Parse headers
+        const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase());
+        
+        // Expected headers for students
+        const expectedHeaders = ['id', 'name', 'program', 'level', 'block', 'email', 'phone', 'password'];
+        const missingHeaders = expectedHeaders.filter(h => !headers.includes(h));
+        
+        if (missingHeaders.length > 0) {
+            showError(`Missing columns: ${missingHeaders.join(', ')}. Required: id, name, program, level, block, email, phone, password`);
+            return;
+        }
+        
+        // Parse data rows
+        const students = [];
+        const errors = [];
+        const validPrograms = ['BSIT', 'BSCS', 'BSEMC'];
+        const validLevels = ['1', '2', '3', '4', '5', '6'];
+        const validBlocks = ['A', 'B', 'C', 'D'];
+        
+        for (let i = 1; i < lines.length; i++) {
+            const values = parseCSVLine(lines[i]);
+            
+            // Create object with headers
+            const student = {};
+            headers.forEach((header, idx) => {
+                let value = values[idx] || '';
+                if (value.startsWith("'")) {
+                    value = value.substring(1);
+                }
+                student[header] = value;
+            });
+            
+            // Validate required fields
+            if (!student.id || !student.name || !student.program || !student.level || !student.block || !student.email || !student.password) {
+                errors.push(`Row ${i}: Missing required fields (id, name, program, level, block, email, password)`);
+                continue;
+            }
+            
+            // Validate ID is number
+            if (isNaN(parseInt(student.id))) {
+                errors.push(`Row ${i}: ID must be a number`);
+                continue;
+            }
+            
+            // Validate program
+            if (!validPrograms.includes(student.program.toUpperCase())) {
+                errors.push(`Row ${i}: Program must be BSIT, BSCS, or BSEMC. Got: ${student.program}`);
+                continue;
+            }
+            
+            // Validate level
+            if (!validLevels.includes(student.level.toString())) {
+                errors.push(`Row ${i}: Level must be 1-6. Got: ${student.level}`);
+                continue;
+            }
+            
+            // Validate block
+            if (!validBlocks.includes(student.block.toUpperCase())) {
+                errors.push(`Row ${i}: Block must be A, B, C, or D. Got: ${student.block}`);
+                continue;
+            }
+            
+            // Generate QR value for student
+            const qrValue = generateQRValue(parseInt(student.id));
+            
+            students.push({
+                id: parseInt(student.id),
+                name: student.name,
+                program: student.program.toUpperCase(),
+                level: parseInt(student.level),
+                block: student.block.toUpperCase(),
+                email: student.email,
+                phone: student.phone || null,
+                password: student.password,
+                role: 'student',
+                qr_value: qrValue
+            });
+        }
+        
+        if (errors.length > 0) {
+            showError(`Validation errors:\n${errors.slice(0, 5).join('\n')}`);
+            return;
+        }
+        
+        if (students.length === 0) {
+            showError('No valid students to upload');
+            return;
+        }
+        
+        // Check for duplicate IDs in the database
+        const studentIds = students.map(s => s.id);
+        const { data: existing } = await supabase
+            .from('users')
+            .select('id')
+            .in('id', studentIds)
+            .eq('role', 'student');
+        
+        const existingIds = existing?.map(e => e.id) || [];
+        
+        if (existingIds.length > 0) {
+            showError(`Student IDs already exist: ${existingIds.join(', ')}. Please remove them from CSV.`);
+            return;
+        }
+        
+        // Show loading message
+        showInfo(`Uploading ${students.length} students...`);
+        
+        // Insert in batches of 100
+        const batchSize = 100;
+        let successCount = 0;
+        let failCount = 0;
+        
+        for (let i = 0; i < students.length; i += batchSize) {
+            const batch = students.slice(i, i + batchSize);
+            const { error } = await supabase.from('users').insert(batch);
+            
+            if (error) {
+                console.error('Batch error:', error);
+                failCount += batch.length;
+            } else {
+                successCount += batch.length;
+            }
+        }
+        
+        if (successCount > 0) {
+            showSuccess(`Successfully added ${successCount} students!`);
+            await logAction('BULK_UPLOAD_STUDENTS', `Added ${successCount} students via CSV upload`);
+            await loadStudents();
+            closeModal('bulkStudentModal');
+            fileInput.value = '';
+            document.getElementById('bulkStudentPreview').style.display = 'none';
+        }
+        
+        if (failCount > 0) {
+            showError(`Failed to add ${failCount} students. Check console for details.`);
+        }
+    };
+    
+    reader.readAsText(file);
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ========== BULK UPLOAD CLASSES ==========
+
+// Open bulk upload modal
+document.getElementById('addBulkClassBtn')?.addEventListener('click', () => {
+    document.getElementById('classCsvFile').value = '';
+    document.getElementById('bulkClassPreview').style.display = 'none';
+    showModal('bulkClassModal');
+});
+
+// Preview CSV file when selected
+document.getElementById('classCsvFile')?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        const csvText = event.target.result;
+        const lines = csvText.split('\n').filter(line => line.trim());
+        const previewDiv = document.getElementById('bulkClassPreview');
+        const previewContent = document.getElementById('classPreviewContent');
+        
+        if (lines.length === 0) {
+            previewContent.innerHTML = '<p>No data found</p>';
+            previewDiv.style.display = 'block';
+            return;
+        }
+        
+        // Create table with ALL rows
+        let previewHtml = '<table style="width: 100%; border-collapse: collapse; font-size: 10px;">';
+        
+        lines.forEach((line, idx) => {
+            const cells = parseCSVLine(line);
+            previewHtml += '<tr>';
+            cells.forEach(cell => {
+                let displayCell = cell.replace(/^'/, '');
+                if (displayCell.length > 20) {
+                    displayCell = displayCell.substring(0, 17) + '...';
+                }
+                previewHtml += `<td style="border: 1px solid #ddd; padding: 4px;">${displayCell || '&nbsp;'}</td>`;
+            });
+            previewHtml += '</tr>';
+        });
+        
+        previewHtml += '</table>';
+        previewContent.innerHTML = previewHtml;
+        
+        previewDiv.style.display = 'block';
+        previewDiv.style.maxHeight = '250px';
+        previewDiv.style.overflowY = 'auto';
+    };
+    reader.readAsText(file);
+});
+
+// Process bulk upload classes
+document.getElementById('confirmBulkClassBtn')?.addEventListener('click', async () => {
+    const fileInput = document.getElementById('classCsvFile');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        showError('Please select a CSV file');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+        const csvText = event.target.result;
+        const lines = csvText.split('\n').filter(line => line.trim());
+        
+        if (lines.length < 2) {
+            showError('CSV file must have a header row and at least one data row');
+            return;
+        }
+        
+        // Parse headers
+        const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase());
+        
+        // Expected headers for classes
+        const expectedHeaders = ['id', 'subject', 'program', 'teacher_id', 'blocks', 'class_room', 'class_building', 'class_day', 'class_time_start', 'class_time_end', 'class_level', 'class_color'];
+        const missingHeaders = expectedHeaders.filter(h => !headers.includes(h));
+        
+        if (missingHeaders.length > 0) {
+            showError(`Missing columns: ${missingHeaders.join(', ')}`);
+            return;
+        }
+        
+        // Get all teachers for validation
+        const { data: teachers } = await supabase
+            .from('users')
+            .select('id')
+            .eq('role', 'teacher');
+        
+        const validTeacherIds = teachers?.map(t => t.id) || [];
+        
+        // Parse data rows
+        const classes = [];
+        const errors = [];
+        const validPrograms = ['BSIT', 'BSCS', 'BSEMC', ''];
+        const validBuildings = ['Main', 'Annex'];
+        const validColors = ['orange', 'green', 'blue', 'yellow', 'orangered', 'violet', 'white', 'Black', 'Grey'];
+        const validDays = ['M', 'T', 'W', 'Th', 'F', 'S'];
+        
+        for (let i = 1; i < lines.length; i++) {
+            const values = parseCSVLine(lines[i]);
+            
+            // Create object with headers
+            const classItem = {};
+            headers.forEach((header, idx) => {
+                let value = values[idx] || '';
+                if (value.startsWith("'")) {
+                    value = value.substring(1);
+                }
+                classItem[header] = value;
+            });
+            
+            // Validate required fields
+            if (!classItem.id || !classItem.subject || !classItem.teacher_id || !classItem.class_room || !classItem.class_day || !classItem.class_time_start || !classItem.class_time_end) {
+                errors.push(`Row ${i}: Missing required fields (id, subject, teacher_id, class_room, class_day, class_time_start, class_time_end)`);
+                continue;
+            }
+            
+            // Validate ID is number
+            if (isNaN(parseInt(classItem.id))) {
+                errors.push(`Row ${i}: ID must be a number`);
+                continue;
+            }
+            
+            // Validate teacher exists
+            const teacherIdNum = parseInt(classItem.teacher_id);
+            if (!validTeacherIds.includes(teacherIdNum)) {
+                errors.push(`Row ${i}: Teacher ID ${classItem.teacher_id} does not exist`);
+                continue;
+            }
+            
+            // Validate program (optional)
+            if (classItem.program && !validPrograms.includes(classItem.program)) {
+                errors.push(`Row ${i}: Program must be BSIT, BSCS, BSEMC, or empty. Got: ${classItem.program}`);
+                continue;
+            }
+            
+            // Parse blocks (comma-separated, e.g., "A,B")
+            let blocks = [];
+            if (classItem.blocks) {
+                blocks = classItem.blocks.split(',').map(b => b.trim());
+            }
+            
+            // Parse days (comma-separated, e.g., "M,T,W")
+            let days = [];
+            if (classItem.class_day) {
+                days = classItem.class_day.split(',').map(d => d.trim());
+                const invalidDays = days.filter(d => !validDays.includes(d));
+                if (invalidDays.length > 0) {
+                    errors.push(`Row ${i}: Invalid days: ${invalidDays.join(', ')}. Valid: M, T, W, Th, F, S`);
+                    continue;
+                }
+            }
+            
+            // Validate building
+            if (classItem.class_building && !validBuildings.includes(classItem.class_building)) {
+                errors.push(`Row ${i}: Building must be Main or Annex. Got: ${classItem.class_building}`);
+                continue;
+            }
+            
+            // Validate color
+            if (classItem.class_color && !validColors.includes(classItem.class_color.toLowerCase())) {
+                errors.push(`Row ${i}: Invalid color. Got: ${classItem.class_color}`);
+                continue;
+            }
+            
+            // Validate level (optional, 1-6)
+            let level = null;
+            if (classItem.class_level) {
+                level = parseInt(classItem.class_level);
+                if (isNaN(level) || level < 1 || level > 6) {
+                    errors.push(`Row ${i}: Class level must be 1-6. Got: ${classItem.class_level}`);
+                    continue;
+                }
+            }
+            
+            classes.push({
+                id: parseInt(classItem.id),
+                subject: classItem.subject,
+                program: classItem.program || null,
+                teacher_id: teacherIdNum,
+                blocks: blocks,
+                class_room: parseInt(classItem.class_room),
+                class_building: classItem.class_building || 'Main',
+                class_day: days,
+                class_time_start: classItem.class_time_start,
+                class_time_end: classItem.class_time_end,
+                class_level: level,
+                class_color: classItem.class_color || 'orange'
+            });
+        }
+        
+        if (errors.length > 0) {
+            showError(`Validation errors:\n${errors.slice(0, 5).join('\n')}`);
+            return;
+        }
+        
+        if (classes.length === 0) {
+            showError('No valid classes to upload');
+            return;
+        }
+        
+        // Check for duplicate IDs in the database
+        const classIds = classes.map(c => c.id);
+        const { data: existing } = await supabase
+            .from('classes')
+            .select('id')
+            .in('id', classIds);
+        
+        const existingIds = existing?.map(e => e.id) || [];
+        
+        if (existingIds.length > 0) {
+            showError(`Class IDs already exist: ${existingIds.join(', ')}. Please remove them from CSV.`);
+            return;
+        }
+        
+        // Show loading message
+        showInfo(`Uploading ${classes.length} classes...`);
+        
+        // Insert in batches of 100
+        const batchSize = 100;
+        let successCount = 0;
+        let failCount = 0;
+        
+        for (let i = 0; i < classes.length; i += batchSize) {
+            const batch = classes.slice(i, i + batchSize);
+            const { error } = await supabase.from('classes').insert(batch);
+            
+            if (error) {
+                console.error('Batch error:', error);
+                failCount += batch.length;
+            } else {
+                successCount += batch.length;
+            }
+        }
+        
+        if (successCount > 0) {
+            showSuccess(`Successfully added ${successCount} classes!`);
+            await logAction('BULK_UPLOAD_CLASSES', `Added ${successCount} classes via CSV upload`);
+            await loadClasses();
+            closeModal('bulkClassModal');
+            fileInput.value = '';
+            document.getElementById('bulkClassPreview').style.display = 'none';
+        }
+        
+        if (failCount > 0) {
+            showError(`Failed to add ${failCount} classes. Check console for details.`);
+        }
+    };
+    
+    reader.readAsText(file);
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ========== BULK UPLOAD ADMINS ==========
+
+// Open bulk upload modal
+document.getElementById('addBulkAdminBtn')?.addEventListener('click', () => {
+    document.getElementById('adminCsvFile').value = '';
+    document.getElementById('bulkAdminPreview').style.display = 'none';
+    showModal('bulkAdminModal');
+});
+
+// Preview CSV file when selected
+document.getElementById('adminCsvFile')?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        const csvText = event.target.result;
+        const lines = csvText.split('\n').filter(line => line.trim());
+        const previewDiv = document.getElementById('bulkAdminPreview');
+        const previewContent = document.getElementById('adminPreviewContent');
+        
+        if (lines.length === 0) {
+            previewContent.innerHTML = '<p>No data found</p>';
+            previewDiv.style.display = 'block';
+            return;
+        }
+        
+        // Create table with ALL rows
+        let previewHtml = '<table style="width: 100%; border-collapse: collapse; font-size: 11px;">';
+        
+        lines.forEach((line, idx) => {
+            const cells = parseCSVLine(line);
+            previewHtml += '<tr>';
+            cells.forEach(cell => {
+                let displayCell = cell.replace(/^'/, '');
+                if (displayCell.length > 25) {
+                    displayCell = displayCell.substring(0, 22) + '...';
+                }
+                previewHtml += `<td style="border: 1px solid #ddd; padding: 4px;">${displayCell || '&nbsp;'}</td>`;
+            });
+            previewHtml += '</tr>';
+        });
+        
+        previewHtml += '</table>';
+        previewContent.innerHTML = previewHtml;
+        
+        previewDiv.style.display = 'block';
+        previewDiv.style.maxHeight = '250px';
+        previewDiv.style.overflowY = 'auto';
+    };
+    reader.readAsText(file);
+});
+
+// Process bulk upload admins
+document.getElementById('confirmBulkAdminBtn')?.addEventListener('click', async () => {
+    const fileInput = document.getElementById('adminCsvFile');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        showError('Please select a CSV file');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+        const csvText = event.target.result;
+        const lines = csvText.split('\n').filter(line => line.trim());
+        
+        if (lines.length < 2) {
+            showError('CSV file must have a header row and at least one data row');
+            return;
+        }
+        
+        // Parse headers
+        const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase());
+        
+        // Expected headers for admins
+        const expectedHeaders = ['id', 'name', 'email', 'phone', 'password'];
+        const missingHeaders = expectedHeaders.filter(h => !headers.includes(h));
+        
+        if (missingHeaders.length > 0) {
+            showError(`Missing columns: ${missingHeaders.join(', ')}. Required: id, name, email, phone, password`);
+            return;
+        }
+        
+        // Parse data rows
+        const admins = [];
+        const errors = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+            const values = parseCSVLine(lines[i]);
+            
+            // Create object with headers
+            const admin = {};
+            headers.forEach((header, idx) => {
+                let value = values[idx] || '';
+                if (value.startsWith("'")) {
+                    value = value.substring(1);
+                }
+                admin[header] = value;
+            });
+            
+            // Validate required fields
+            if (!admin.id || !admin.name || !admin.email || !admin.password) {
+                errors.push(`Row ${i}: Missing required fields (id, name, email, password)`);
+                continue;
+            }
+            
+            // Validate ID is number
+            if (isNaN(parseInt(admin.id))) {
+                errors.push(`Row ${i}: ID must be a number`);
+                continue;
+            }
+            
+            admins.push({
+                id: parseInt(admin.id),
+                name: admin.name,
+                email: admin.email,
+                phone: admin.phone || null,
+                password: admin.password,
+                role: 'admin'
+            });
+        }
+        
+        if (errors.length > 0) {
+            showError(`Validation errors:\n${errors.slice(0, 5).join('\n')}`);
+            return;
+        }
+        
+        if (admins.length === 0) {
+            showError('No valid admins to upload');
+            return;
+        }
+        
+        // Check for duplicate IDs in the database
+        const adminIds = admins.map(a => a.id);
+        const { data: existing } = await supabase
+            .from('users')
+            .select('id')
+            .in('id', adminIds)
+            .eq('role', 'admin');
+        
+        const existingIds = existing?.map(e => e.id) || [];
+        
+        if (existingIds.length > 0) {
+            showError(`Admin IDs already exist: ${existingIds.join(', ')}. Please remove them from CSV.`);
+            return;
+        }
+        
+        // Also check if IDs are used by other roles (teachers, students)
+        const { data: existingOtherRoles } = await supabase
+            .from('users')
+            .select('id, role')
+            .in('id', adminIds);
+        
+        const conflicts = existingOtherRoles?.filter(u => u.role !== 'admin') || [];
+        if (conflicts.length > 0) {
+            const conflictMsg = conflicts.map(c => `${c.id} (${c.role})`).join(', ');
+            showError(`IDs already used by other users: ${conflictMsg}. Please use different IDs.`);
+            return;
+        }
+        
+        // Show loading message
+        showInfo(`Uploading ${admins.length} admins...`);
+        
+        // Insert in batches of 100
+        const batchSize = 100;
+        let successCount = 0;
+        let failCount = 0;
+        
+        for (let i = 0; i < admins.length; i += batchSize) {
+            const batch = admins.slice(i, i + batchSize);
+            const { error } = await supabase.from('users').insert(batch);
+            
+            if (error) {
+                console.error('Batch error:', error);
+                failCount += batch.length;
+            } else {
+                successCount += batch.length;
+            }
+        }
+        
+        if (successCount > 0) {
+            showSuccess(`Successfully added ${successCount} admins!`);
+            await logAction('BULK_UPLOAD_ADMINS', `Added ${successCount} admins via CSV upload`);
+            await loadAdmins();
+            closeModal('bulkAdminModal');
+            fileInput.value = '';
+            document.getElementById('bulkAdminPreview').style.display = 'none';
+        }
+        
+        if (failCount > 0) {
+            showError(`Failed to add ${failCount} admins. Check console for details.`);
+        }
+    };
+    
+    reader.readAsText(file);
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ============ INITIALIZE ============
 async function init() {
     await loadTeachers()

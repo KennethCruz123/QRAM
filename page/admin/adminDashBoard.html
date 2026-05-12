@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     
-</head>
+</head> 
 <body>
     
                                 <!-- Main Body - Display Everything -->
@@ -82,7 +82,10 @@
 
             <div class="section-header">
                 <h2>MANAGE TEACHERS</h2>
-                <button class="add-btn" id="addTeacherBtn">add teacher</button>
+                <div>
+                    <button class="add-btn" id="addBulkTeacherBtn">add bulk teacher</button>
+                    <button class="add-btn" id="addTeacherBtn">add teacher</button>
+                </div>
             </div>
 
             <!-- Filter and Sort bar -->
@@ -130,7 +133,10 @@
 
             <div class="section-header">
                 <h2>MANAGE STUDENTS</h2>
-                <button class="add-btn" id="addStudentBtn">add student</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="add-btn" id="addBulkStudentBtn">add bulk student</button>
+                    <button class="add-btn" id="addStudentBtn">add student</button>
+                </div>
             </div>
 
             <!-- Filter and Sort bar -->
@@ -210,7 +216,10 @@
 
             <div class="section-header">
                 <h2>MANAGE CLASSES</h2>
-                <button class="add-btn" id="addClassBtn">add class</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="add-btn" id="addBulkClassBtn">add bulk class</button>
+                    <button class="add-btn" id="addClassBtn">add class</button>
+                </div>
             </div>
 
             <!-- Filter and Sort bar -->
@@ -558,6 +567,125 @@
             </div>
             <div class="modal-buttons">
                 <button class="cancel-btn" onclick="closeModal('viewClassStudentsModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+    <!-- Bulk Upload Teachers Modal -->
+    <div id="bulkTeacherModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Bulk Upload Teachers (CSV)</h3>
+                <button class="close-modal" onclick="closeModal('bulkTeacherModal')">&times;</button>
+            </div>
+            <div class="bulk-upload-instructions">
+                <p style="margin-bottom: 10px; font-size: 13px;">
+                    <strong>CSV Format Required:</strong> First row must be column headers:
+                </p>
+                <pre style="border-radius: 8px; border: 2px solid black; font-size: 11px;">
+
+    id,name,email,phone,password
+    2001,Teacher 1,teacher1@gmail.com,09100002001,teacher1password
+    2002,Teacher 2,teacher2@gmail.com,09100002002,teacher2password
+                </pre>
+                <p style="font-size: 12px; margin: 5px 0px;">
+                    <strong>Important:</strong> ID must be unique. Password is required.
+                </p>
+            </div>
+            <div class="form-group">
+                <label>Choose CSV File</label>
+                <input type="file" id="teacherCsvFile" accept=".csv" style="padding: 8px;">
+            </div>
+            <div id="bulkUploadPreview" style="max-height: 250px; overflow-y: auto; margin: 10px 0; font-size: 12px; border: 1px solid #ddd; border-radius: 8px; padding: 8px; display: none;">
+                <strong>Preview:</strong>
+                <div id="previewContent"></div>
+            </div>
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closeModal('bulkTeacherModal')">Cancel</button>
+                <button class="submit-btn" id="confirmBulkUploadBtn" style="background-color: green;">Upload Teachers</button>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <!-- Bulk Upload Students Modal -->
+    <div id="bulkStudentModal" class="modal">
+        <div class="modal-content" style="max-width: 1500px;">
+            <div class="modal-header">
+                <h3>Bulk Upload Students (CSV)</h3>
+                <button class="close-modal" onclick="closeModal('bulkStudentModal')">&times;</button>
+            </div>
+            <div class="bulk-upload-instructions">
+                <p style="margin-bottom: 10px; font-size: 13px;">
+                    <strong>CSV Format Required:</strong> First row must be column headers:
+                </p>
+                <pre style="border-radius: 8px; border: 2px solid black; font-size: 11px;">
+
+    id,name,program,level,block,email,phone,password
+    3001,Student 1,BSIT,1,A,student1@email.com,09100003001,student1password
+    3002,Student 2,BSCS,2,B,student2@email.com,09100003002,student2password
+    3003,Student 3,BSEMC,3,C,student3@email.com,09100003003,student3password
+                </pre>
+                <p style="font-size: 12px; margin: 5px 0px;">
+                    <strong>Important:</strong> ID must be unique. Program: BSIT, BSCS, BSEMC. Level: 1-6. Block: A, B, C, D.
+                </p>
+            </div>
+            <div class="form-group">
+                <label>Choose CSV File</label>
+                <input type="file" id="studentCsvFile" accept=".csv" style="padding: 8px;">
+            </div>
+            <div id="bulkStudentPreview" style="max-height: 250px; overflow-y: auto; margin: 10px 0; font-size: 12px; border: 1px solid #ddd; border-radius: 8px; padding: 8px; display: none;">
+                <strong>Preview:</strong>
+                <div id="studentPreviewContent"></div>
+            </div>
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closeModal('bulkStudentModal')">Cancel</button>
+                <button class="submit-btn" id="confirmBulkStudentBtn" style="background-color: green;">Upload Students</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Bulk Upload Classes Modal -->
+    <div id="bulkClassModal" class="modal">
+        <div class="modal-content" style="max-width: 850px;">
+            <div class="modal-header">
+                <h3>Bulk Upload Classes (CSV)</h3>
+                <button class="close-modal" onclick="closeModal('bulkClassModal')">&times;</button>
+            </div>
+            <div class="bulk-upload-instructions">
+                <p style="margin-bottom: 10px; font-size: 13px;">
+                    <strong>CSV Format Required:</strong> First row must be column headers:
+                </p>
+                <pre style="border-radius: 8px; border: 2px solid black; font-size: 10px; overflow-x: auto;">
+                    
+    id,subject,program,teacher_id,blocks,class_room,class_building,class_day,class_time_start,class_time_end,class_level,class_color
+    50001,Appdev,BSIT,1001,"A,B",101,Main,"M,W,F",08:00,10:00,1,blue
+    50002,Ethics,BSCS,1002,"A,B,C",102,Annex,"T,Th",10:30,12:30,2,green
+    50003,Networking,BSEMC,1003,"A",103,Main,"M,W",13:00,15:00,3,orange
+                </pre>
+                <p style="font-size: 12px; margin: 5px 0px;">
+                    <strong>Important:</strong> 
+                    blocks: use quotes like "A,B,C" | days: "M,T,W,Th,F,S" | program: BSIT, BSCS, BSEMC, or leave empty for all programs                  
+                </p>
+            </div>
+            <div class="form-group">
+                <label>Choose CSV File</label>
+                <input type="file" id="classCsvFile" accept=".csv" style="padding: 8px;">
+            </div>
+            <div id="bulkClassPreview" style="max-height: 250px; overflow-y: auto; margin: 10px 0; font-size: 12px; border: 1px solid #ddd; border-radius: 8px; padding: 8px; display: none;">
+                <strong>Preview:</strong>
+                <div id="classPreviewContent"></div>
+            </div>
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closeModal('bulkClassModal')">Cancel</button>
+                <button class="submit-btn" id="confirmBulkClassBtn" style="background-color: green;">Upload Classes</button>
             </div>
         </div>
     </div>
