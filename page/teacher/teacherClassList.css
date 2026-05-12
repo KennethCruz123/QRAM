@@ -5,6 +5,11 @@
 }
 
 body {
+    background-image: url(/asset/image/landing_page_background.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+    background-size: cover;
     font-family: Arial, sans-serif;
     background-color: #f0f4f8;
 }

@@ -133,17 +133,15 @@ async function loadStudentClasses() {
         
         if (classError) throw classError
         
-        // Show if no classes found
         if (!classes || classes.length === 0) {
             container.innerHTML = '<div class="no-classes">No classes found.</div>'
             return
         }
         
-        
-        // Get all unique teacher IDs from the classes
+        // Get all unique teacher IDs
         const teacherIds = [...new Set(classes.map(c => c.teacher_id).filter(id => id))]
         
-        // Create a map of teacher ID to teacher data
+        // Get teacher data
         let teacherMap = {}
         if (teacherIds.length > 0) {
             const { data: teachers } = await supabase
@@ -157,19 +155,71 @@ async function loadStudentClasses() {
                 })
             }
         }
-
-        // reset page
+        
+        // Get sessions for absence calculation
+        const { data: sessions } = await supabase
+            .from('sessions')
+            .select('id, class_id')
+            .in('class_id', classIds)
+        
+        // Group sessions by class
+        const sessionsByClass = {}
+        if (sessions) {
+            sessions.forEach(session => {
+                if (!sessionsByClass[session.class_id]) {
+                    sessionsByClass[session.class_id] = []
+                }
+                sessionsByClass[session.class_id].push(session.id)
+            })
+        }
+        
+        // Get attendance records for this student
+        const allSessionIds = sessions?.map(s => s.id) || []
+        const { data: attendances } = await supabase
+            .from('attendances')
+            .select('session_id, status')
+            .in('session_id', allSessionIds)
+            .eq('student_id', parseInt(userId))
+        
+        // Create attendance map
+        const attendanceMap = {}
+        if (attendances) {
+            attendances.forEach(a => {
+                attendanceMap[a.session_id] = a.status
+            })
+        }
+        
         container.innerHTML = ''
         
         // Loop through each class
         for (const classItem of classes) {
-            
-            // teacher info
+            // Get teacher info
             const teacher = teacherMap[classItem.teacher_id]
             const teacherName = teacher?.name || 'Not assigned'
             const teacherEmail = teacher?.email || ''
             const teacherPhone = teacher?.phone || ''
-           
+            
+            // Calculate absences for this class
+            const classSessionIds = sessionsByClass[classItem.id] || []
+            let absentCount = 0
+            
+            classSessionIds.forEach(sessionId => {
+                const status = attendanceMap[sessionId]
+                if (!status || status === 'absent') {
+                    absentCount++
+                }
+            })
+            
+            // Calculate max absences based on sessions per week
+            const sessionsPerWeek = classItem.class_day ? classItem.class_day.length : 2
+            const maxAbsences = sessionsPerWeek === 1 ? 3 : 6
+            const remainingAbsences = maxAbsences - absentCount
+            
+            // Determine border class (red when 1 or 0 absences left)
+            let borderWarningClass = ''
+            if (remainingAbsences === 1 || remainingAbsences <= 0) {
+                borderWarningClass = 'border-warning'
+            }
             
             // Format days
             const daysMap = { 'M': 'Mon', 'T': 'Tue', 'W': 'Wed', 'Th': 'Thu', 'F': 'Fri', 'S': 'Sat' }
@@ -195,7 +245,7 @@ async function loadStudentClasses() {
             
             // Build class card
             container.innerHTML += `
-                <div class="class-card">
+                <div class="class-card ${borderWarningClass}">
                     <div class="class-color-bar" style="background-color: ${classColor};"></div>
                     <div class="class-content">
                         <div class="class-subject">${classItem.subject || 'N/A'}</div>
@@ -219,7 +269,6 @@ async function loadStudentClasses() {
                         <div class="class-detail-full"><strong>Class Time:</strong> ${formatTime(classItem.class_time_start)} - ${formatTime(classItem.class_time_end)}</div>
                         <div class="class-detail-full"><strong>Class Loc:</strong> ${location}</div>
                         
-                        
                         <button class="enter-class-btn" onclick="goToClass('${classItem.id}', '${classItem.subject}')">Enter Class</button>
                     </div>
                 </div>
@@ -231,9 +280,9 @@ async function loadStudentClasses() {
     }
 }
 
+
 document.getElementById('showAttendanceSummaryBtn').addEventListener('click', showAttendanceSummary)
 
-// Show Attendance Summary Modal
 // Show Attendance Summary Modal
 async function showAttendanceSummary() {
     const contentDiv = document.getElementById('attendanceSummaryContent')

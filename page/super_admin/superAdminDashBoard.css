@@ -5,6 +5,11 @@
 }
 
 body {
+    background-image: url(/asset/image/landing_page_background.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+    background-size: cover;
     font-family: Arial, sans-serif;
     background-color: white;
     display: flex;
@@ -15,7 +20,6 @@ body {
     width: 90%;
     max-width: 1400px;
     min-height: 100vh;
-    background-color: white;
     padding-top: 20px;
 }
 

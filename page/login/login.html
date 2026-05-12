@@ -6,41 +6,53 @@
     <title>Login Page</title>
     <link rel="stylesheet" href="login.css">
     <link rel="shortcut icon" href="/asset/image/Logo_QRAM.png" type="image/x-icon">
-
 </head>
 <body>
-    <!-- Main login -->
-    <div class="login-container">
-        <div class="login-card">
-            <div class="login-header">
-                <div class="logo">
-                    <h1>QRAM</h1>
-                </div>
-                <h2>Welcome Back</h2>
-                <p>Sign in to your account</p>
+    <div class="split-layout">
+        <!-- Left Side - Image -->
+        <div class="left-panel">
+            <div class="image-overlay">
+                <img src="/asset/image/landing_page_phone_image.png" alt="QRAM Logo" class="left-logo">
+                <h2>QR Attendance System</h2>
+                <p>Track attendance with ease</p>
             </div>
+        </div>
 
-            <div class="login-form">
-                <div class="input-field">
-                    <label>User ID</label>
-                    <input type="text" placeholder="Enter your user ID" id="userId">
+        <!-- Right Side - Login (your original content) -->
+        <div class="right-panel">
+            <div class="login-container">
+                <div class="login-card">
+                    <div class="login-header">
+                        <div class="logo">
+                            <h1>QRAM</h1>
+                        </div>
+                        <h2>Welcome Back</h2>
+                        <p>Sign in to your account</p>
+                    </div>
+
+                    <div class="login-form">
+                        <div class="input-field">
+                            <label>User ID</label>
+                            <input type="text" placeholder="Enter your user ID" id="userId">
+                        </div>
+
+                        <div class="input-field">
+                            <label>Password</label>
+                            <input type="password" placeholder="Enter your password" id="password">
+                        </div>
+
+                        <div class="forgot-link">
+                            <a href="#" id="changePasswordLink">Change Password</a>
+                        </div>
+
+                        <button class="login-btn" id="loginBtn">Login</button>
+                    </div>
                 </div>
-
-                <div class="input-field">
-                    <label>Password</label>
-                    <input type="password" placeholder="Enter your password" id="password">
-                </div>
-
-                <div class="forgot-link">
-                    <a href="#" id="changePasswordLink">Change Password</a>
-                </div>
-
-                <button class="login-btn" id="loginBtn">Login</button>
             </div>
         </div>
     </div>
 
-    <!-- Change Password Modal -->
+    <!-- Change Password Modal (keep as is) -->
     <div id="changePasswordModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -75,6 +87,6 @@
         </div>
     </div>
 
-</body>
     <script type="module" src="login.js"></script>
+</body>
 </html>
