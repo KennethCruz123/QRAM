@@ -180,6 +180,8 @@ let allTeachers = []
 let allStudents = []
 let allClasses = []
 
+let pendingSelectedStudentIds = []
+
 
 
 // ========== HELPER FUNCTION ==========
@@ -225,15 +227,34 @@ function renderModalStudentList() {
     const studentsContainer = document.getElementById('studentsListContainer')
     if (!studentsContainer) return
     
+    // Build list using pendingSelectedStudentIds (not enrolledIds directly)
     studentsContainer.innerHTML = filteredStudents.map(student => `
         <div class="student-list-item">
             <label class="checkbox-label">
-                <input type="checkbox" value="${student.id}" ${modalEnrolledIds.includes(student.id) ? 'checked' : ''}>
+                <input type="checkbox" value="${student.id}" 
+                    ${pendingSelectedStudentIds.includes(student.id) ? 'checked' : ''}>
                 <span><strong>${student.id}</strong> - ${student.name} 
                 </span>
             </label>
         </div>
     `).join('')
+    
+    // Re-attach event listeners to update pending selections when checkboxes change
+    document.querySelectorAll('#studentsListContainer input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', (e) => {
+            const studentId = parseInt(e.target.value)
+            if (e.target.checked) {
+                if (!pendingSelectedStudentIds.includes(studentId)) {
+                    pendingSelectedStudentIds.push(studentId)
+                }
+            } else {
+                const index = pendingSelectedStudentIds.indexOf(studentId)
+                if (index !== -1) {
+                    pendingSelectedStudentIds.splice(index, 1)
+                }
+            }
+        })
+    })
 }
 
 
@@ -1305,7 +1326,6 @@ window.addStudentToClass = async (classId, className) => {
         .eq('role', 'student')
         .order('id')
     
-    // If class has a specific program, only show students from that program
     if (classProgram) {
         query = query.eq('program', classProgram)
     }
@@ -1322,6 +1342,9 @@ window.addStudentToClass = async (classId, className) => {
     modalStudentsList = students || []
     modalEnrolledIds = enrolled?.map(e => e.student_id) || []
     
+    // IMPORTANT: Initialize pending selections with currently enrolled students
+    pendingSelectedStudentIds = [...modalEnrolledIds]
+    
     // Reset filter variables (empty arrays = show all)
     modalSelectedLevels = []
     modalSelectedBlocks = []
@@ -1334,7 +1357,7 @@ window.addStudentToClass = async (classId, className) => {
             document.querySelectorAll('.level-filter-checkbox:checked').forEach(checked => {
                 modalSelectedLevels.push(checked.value)
             })
-            renderModalStudentList()
+            renderModalStudentList()  // This preserves pendingSelectedStudentIds
         }
     })
     
@@ -1346,17 +1369,35 @@ window.addStudentToClass = async (classId, className) => {
             document.querySelectorAll('.block-filter-checkbox:checked').forEach(checked => {
                 modalSelectedBlocks.push(checked.value)
             })
-            renderModalStudentList()
+            renderModalStudentList()  // This preserves pendingSelectedStudentIds
         }
     })
     
-    // Keep your existing Select All and Clear All buttons for students
+    // Select All button
     document.getElementById('modalSelectAllBtn').onclick = () => {
-        document.querySelectorAll('#studentsListContainer input[type="checkbox"]').forEach(cb => cb.checked = true)
+        // Get all visible student IDs (after filters)
+        const visibleCheckboxes = document.querySelectorAll('#studentsListContainer input[type="checkbox"]')
+        visibleCheckboxes.forEach(cb => {
+            cb.checked = true
+            const studentId = parseInt(cb.value)
+            if (!pendingSelectedStudentIds.includes(studentId)) {
+                pendingSelectedStudentIds.push(studentId)
+            }
+        })
     }
     
+    // Clear All button
     document.getElementById('modalClearAllBtn').onclick = () => {
-        document.querySelectorAll('#studentsListContainer input[type="checkbox"]').forEach(cb => cb.checked = false)
+        // Uncheck all visible students
+        const visibleCheckboxes = document.querySelectorAll('#studentsListContainer input[type="checkbox"]')
+        visibleCheckboxes.forEach(cb => {
+            cb.checked = false
+            const studentId = parseInt(cb.value)
+            const index = pendingSelectedStudentIds.indexOf(studentId)
+            if (index !== -1) {
+                pendingSelectedStudentIds.splice(index, 1)
+            }
+        })
     }
     
     // Render the student list
@@ -1368,15 +1409,8 @@ window.addStudentToClass = async (classId, className) => {
 
 // Save changes to class enrollment (add/remove students)
 document.getElementById('saveAddStudentsBtn').onclick = async () => {
-
-    // Get all checkboxes from student list
-    const checkboxes = document.querySelectorAll('#studentsListContainer input[type="checkbox"]')
-    
-    // Collect IDs of selected (checked) students
-    const selectedStudentIds = []
-    checkboxes.forEach(cb => {
-        if (cb.checked) selectedStudentIds.push(parseInt(cb.value))
-    })
+    // Use pendingSelectedStudentIds (not checkboxes)
+    const selectedStudentIds = pendingSelectedStudentIds
     
     // Remove all existing students from this class
     await supabase.from('class_list').delete().eq('class_id', currentSelectedClassId)
@@ -1390,9 +1424,7 @@ document.getElementById('saveAddStudentsBtn').onclick = async () => {
         await supabase.from('class_list').insert(enrollments)
     }
     
-    // Show success message
     showSuccess(`Updated! ${selectedStudentIds.length} students in class`)
-
     closeModal('addStudentToClassModal')
     await loadClasses()
     await updateStats()

@@ -157,7 +157,11 @@ let currentSelectedClassId = null
 let currentSelectedClassName = null
 let currentViewStudentId = null
 
+
 // Filter and Sort Variables
+
+let auditSearchTerm = ''
+
 let teacherSearchTerm = ''
 let teacherSortBy = 'id_asc'
 
@@ -179,20 +183,23 @@ let modalEnrolledIds = []
 let modalSelectedLevels = []    
 let modalSelectedBlocks = []     
 
-
-
 // Pagination Variables
 let currentTeacherPage = 1
 let currentStudentPage = 1
 let currentClassPage = 1
 let currentAdminPage = 1
+let currentAuditPage = 1
 
 const itemsPerPage = 10
+const auditItemsPerPage = 10
 
 let allTeachers = []
 let allStudents = []
 let allClasses = []
 let allAdmins = []
+let allAuditLogs = []
+
+let pendingSelectedStudentIds = []
 
 
 
@@ -239,15 +246,34 @@ function renderModalStudentList() {
     const studentsContainer = document.getElementById('studentsListContainer')
     if (!studentsContainer) return
     
+    // Build list using pendingSelectedStudentIds (not enrolledIds directly)
     studentsContainer.innerHTML = filteredStudents.map(student => `
         <div class="student-list-item">
             <label class="checkbox-label">
-                <input type="checkbox" value="${student.id}" ${modalEnrolledIds.includes(student.id) ? 'checked' : ''}>
+                <input type="checkbox" value="${student.id}" 
+                    ${pendingSelectedStudentIds.includes(student.id) ? 'checked' : ''}>
                 <span><strong>${student.id}</strong> - ${student.name} 
                 </span>
             </label>
         </div>
     `).join('')
+    
+    // Re-attach event listeners to update pending selections when checkboxes change
+    document.querySelectorAll('#studentsListContainer input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', (e) => {
+            const studentId = parseInt(e.target.value)
+            if (e.target.checked) {
+                if (!pendingSelectedStudentIds.includes(studentId)) {
+                    pendingSelectedStudentIds.push(studentId)
+                }
+            } else {
+                const index = pendingSelectedStudentIds.indexOf(studentId)
+                if (index !== -1) {
+                    pendingSelectedStudentIds.splice(index, 1)
+                }
+            }
+        })
+    })
 }
 
 
@@ -465,6 +491,101 @@ function getFilteredAndSortedAdmins() {
 
 
 // ========== LOAD & RENDER FUNCTIONS ==========
+
+// Load Audit Logs
+async function loadAuditLogs() {
+    // Query database
+    const { data, error } = await supabase
+        .from('audit_logs')
+        .select('*')
+        .order('timestamp', { ascending: false })
+    
+    const tbody = document.getElementById('auditLogsBody')
+    const paginationDiv = document.getElementById('auditPagination')
+    
+    if (error || !data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px;">No audit logs found</td?</td>'
+        if (paginationDiv) paginationDiv.style.display = 'none'
+        return
+    }
+    
+    // Put all Audit Logs in Global Variable (For Filtering)
+    allAuditLogs = data
+    
+    // Reset to first page
+    currentAuditPage = 1
+    
+    // Show Pagination
+    if (paginationDiv) paginationDiv.style.display = 'flex'
+    renderAuditPage()
+}
+
+// Filter audit logs
+function getFilteredAuditLogs() {
+    let filtered = [...allAuditLogs]
+    
+    // Apply search filter (searches user_name, user_role, action, details)
+    if (auditSearchTerm) {
+        const searchLower = auditSearchTerm.toLowerCase()
+        filtered = filtered.filter(log => 
+            (log.user_name && log.user_name.toLowerCase().includes(searchLower)) ||
+            (log.user_role && log.user_role.toLowerCase().includes(searchLower)) ||
+            (log.action && log.action.toLowerCase().includes(searchLower)) ||
+            (log.details && log.details.toLowerCase().includes(searchLower))
+        )
+    }
+    
+    return filtered
+}
+
+// Render Audit Logs Page
+function renderAuditPage() {
+    const tbody = document.getElementById('auditLogsBody')
+    
+    // Get filtered audit logs
+    const filteredLogs = getFilteredAuditLogs()
+    
+    if (filteredLogs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px;">No matching audit logs found</td?</tr>'
+        const pageInfo = document.getElementById('auditPageInfo')
+        if (pageInfo) pageInfo.textContent = 'Page 0 of 0'
+        return
+    }
+    
+    // Calculate pagination based on filtered results
+    const start = (currentAuditPage - 1) * auditItemsPerPage
+    const end = start + auditItemsPerPage
+    const pageLogs = filteredLogs.slice(start, end)
+    
+    // Clear existing rows before displaying
+    tbody.innerHTML = ''
+    
+    // Display actual logs
+    pageLogs.forEach(log => {
+        tbody.innerHTML += `
+            <tr>
+                <td style="white-space: nowrap;">${new Date(log.timestamp).toLocaleString()}</td>
+                <td>${log.user_name || 'Unknown'} (${log.user_id || '?'})</td>
+                <td>${log.user_role}</td>
+                <td style="font-weight: bold;">${log.action}</td>
+                <td style="max-width: 350px; word-break: break-word;">${log.details || '-'}</td>
+            </tr>
+        `
+    })
+    
+    // Calculate and display current page and total page
+    const totalPages = Math.ceil(filteredLogs.length / auditItemsPerPage)
+    const pageInfo = document.getElementById('auditPageInfo')
+    if (pageInfo) pageInfo.textContent = `Page ${currentAuditPage} of ${totalPages}`
+    
+    // Enable/disable pagination buttons
+    const prevBtn = document.querySelector('.prev-audit')
+    const nextBtn = document.querySelector('.next-audit')
+    if (prevBtn && nextBtn) {
+        prevBtn.disabled = currentAuditPage === 1
+        nextBtn.disabled = currentAuditPage === totalPages || totalPages === 0
+    }
+}
 
 // Load Teachers
 async function loadTeachers() {
@@ -1618,7 +1739,6 @@ window.addStudentToClass = async (classId, className) => {
         .eq('role', 'student')
         .order('id')
     
-    // If class has a specific program, only show students from that program
     if (classProgram) {
         query = query.eq('program', classProgram)
     }
@@ -1635,6 +1755,9 @@ window.addStudentToClass = async (classId, className) => {
     modalStudentsList = students || []
     modalEnrolledIds = enrolled?.map(e => e.student_id) || []
     
+    // IMPORTANT: Initialize pending selections with currently enrolled students
+    pendingSelectedStudentIds = [...modalEnrolledIds]
+    
     // Reset filter variables (empty arrays = show all)
     modalSelectedLevels = []
     modalSelectedBlocks = []
@@ -1647,7 +1770,7 @@ window.addStudentToClass = async (classId, className) => {
             document.querySelectorAll('.level-filter-checkbox:checked').forEach(checked => {
                 modalSelectedLevels.push(checked.value)
             })
-            renderModalStudentList()
+            renderModalStudentList()  // This preserves pendingSelectedStudentIds
         }
     })
     
@@ -1659,17 +1782,35 @@ window.addStudentToClass = async (classId, className) => {
             document.querySelectorAll('.block-filter-checkbox:checked').forEach(checked => {
                 modalSelectedBlocks.push(checked.value)
             })
-            renderModalStudentList()
+            renderModalStudentList()  // This preserves pendingSelectedStudentIds
         }
     })
     
-    // Keep your existing Select All and Clear All buttons for students
+    // Select All button
     document.getElementById('modalSelectAllBtn').onclick = () => {
-        document.querySelectorAll('#studentsListContainer input[type="checkbox"]').forEach(cb => cb.checked = true)
+        // Get all visible student IDs (after filters)
+        const visibleCheckboxes = document.querySelectorAll('#studentsListContainer input[type="checkbox"]')
+        visibleCheckboxes.forEach(cb => {
+            cb.checked = true
+            const studentId = parseInt(cb.value)
+            if (!pendingSelectedStudentIds.includes(studentId)) {
+                pendingSelectedStudentIds.push(studentId)
+            }
+        })
     }
     
+    // Clear All button
     document.getElementById('modalClearAllBtn').onclick = () => {
-        document.querySelectorAll('#studentsListContainer input[type="checkbox"]').forEach(cb => cb.checked = false)
+        // Uncheck all visible students
+        const visibleCheckboxes = document.querySelectorAll('#studentsListContainer input[type="checkbox"]')
+        visibleCheckboxes.forEach(cb => {
+            cb.checked = false
+            const studentId = parseInt(cb.value)
+            const index = pendingSelectedStudentIds.indexOf(studentId)
+            if (index !== -1) {
+                pendingSelectedStudentIds.splice(index, 1)
+            }
+        })
     }
     
     // Render the student list
@@ -1681,15 +1822,8 @@ window.addStudentToClass = async (classId, className) => {
 
 // Save changes to class enrollment (add/remove students)
 document.getElementById('saveAddStudentsBtn').onclick = async () => {
-
-    // Get all checkboxes from student list
-    const checkboxes = document.querySelectorAll('#studentsListContainer input[type="checkbox"]')
-    
-    // Collect IDs of selected (checked) students
-    const selectedStudentIds = []
-    checkboxes.forEach(cb => {
-        if (cb.checked) selectedStudentIds.push(parseInt(cb.value))
-    })
+    // Use pendingSelectedStudentIds (not checkboxes)
+    const selectedStudentIds = pendingSelectedStudentIds
     
     // Remove all existing students from this class
     await supabase.from('class_list').delete().eq('class_id', currentSelectedClassId)
@@ -1703,9 +1837,7 @@ document.getElementById('saveAddStudentsBtn').onclick = async () => {
         await supabase.from('class_list').insert(enrollments)
     }
     
-    // Show success message
     showSuccess(`Updated! ${selectedStudentIds.length} students in class`)
-
     closeModal('addStudentToClassModal')
     await loadClasses()
     await updateStats()
@@ -1812,6 +1944,31 @@ async function updateStats() {
 
 // PAGINAGTION EVENT LISTENER
 
+// Audit Logs pagination
+// Audit Logs pagination
+const prevAuditBtn = document.querySelector('.prev-audit')
+const nextAuditBtn = document.querySelector('.next-audit')
+
+if (prevAuditBtn) {
+    prevAuditBtn.addEventListener('click', () => {
+        if (currentAuditPage > 1) {
+            currentAuditPage--
+            renderAuditPage()
+        }
+    })
+}
+
+if (nextAuditBtn) {
+    nextAuditBtn.addEventListener('click', () => {
+        const filteredLogs = getFilteredAuditLogs()
+        const totalPages = Math.ceil(filteredLogs.length / auditItemsPerPage)
+        if (currentAuditPage < totalPages) {
+            currentAuditPage++
+            renderAuditPage()
+        }
+    })
+}
+
 // Teachers pagination
 document.querySelector('.prev-teacher')?.addEventListener('click', () => {
     if (currentTeacherPage > 1) {
@@ -1904,6 +2061,16 @@ if (nextAdminBtn) {
 
 
 // FILTER & SORT EVENT LISTENERS
+
+// Audit Log Search 
+const auditSearchInput = document.getElementById('auditSearch')
+if (auditSearchInput) {
+    auditSearchInput.addEventListener('input', (e) => {
+        auditSearchTerm = e.target.value
+        currentAuditPage = 1  
+        renderAuditPage()
+    })
+}
 
 // Teacher Filter and Sort
 const teacherSearchInput = document.getElementById('teacherSearch')
@@ -2332,45 +2499,6 @@ async function savePolicySettings() {
 
 // Event listener
 document.getElementById('savePolicyBtn').addEventListener('click', savePolicySettings)
-
-
-
-// ========== LOAD AUDIT LOGS ==========
-async function loadAuditLogs() {
-    const tbody = document.getElementById('auditLogsBody')
-    if (!tbody) return
-    
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px;">Loading...</td></tr>'
-    
-    try {
-        const { data, error } = await supabase
-            .from('audit_logs')
-            .select('*')
-            .order('timestamp', { ascending: false })
-            .limit(50)
-        
-        if (error) throw error
-        
-        if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px;">No audit logs found</td></tr>'
-            return
-        }
-        
-        tbody.innerHTML = data.map(log => `
-            <tr>
-                <td style="white-space: nowrap;">${new Date(log.timestamp).toLocaleString()}</td>
-                <td>${log.user_name || 'Unknown'} (${log.user_id || '?'})</td>
-                <td>${log.user_role}</td>
-                <td style="font-weight: bold;">${log.action}</td>
-                <td style="max-width: 350px; word-break: break-word;">${log.details || '-'}</td>
-            </tr>
-        `).join('')
-        
-    } catch (error) {
-        console.error('Error loading audit logs:', error)
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: red;">Error loading logs</td></tr>'
-    }
-}
 
 
 
@@ -3329,7 +3457,6 @@ document.getElementById('confirmBulkAdminBtn')?.addEventListener('click', async 
     
     reader.readAsText(file);
 });
-
 
 
 

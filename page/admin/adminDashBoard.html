@@ -8,9 +8,36 @@
     <link rel="shortcut icon" href="/asset/image/Logo_QRAM.png" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://kit.fontawesome.com/dfcddacee2.js" crossorigin="anonymous"></script>
     
 </head> 
+
 <body>
+
+
+    <!-- Side Navigation Bar (Floating) -->
+    <div class="side-nav">
+        <a href="#attendance" class="side-nav-btn" title="Attendance">
+            <i class="fa-solid fa-clipboard-list"></i>
+            <span class="nav-text">Attendance</span>
+        </a>
+        <a href="#config" class="side-nav-btn" title="Config">
+            <i class="fa-solid fa-gear"></i>
+            <span class="nav-text">System Config</span>
+        </a>
+        <a href="#teachers" class="side-nav-btn" title="Teachers">
+            <i class="fa-solid fa-person-chalkboard"></i>
+            <span class="nav-text">Teachers</span>
+        </a>
+        <a href="#students" class="side-nav-btn" title="Students">
+            <i class="fa-solid fa-user-graduate"></i>
+            <span class="nav-text">Students</span>
+        </a>
+        <a href="#classes" class="side-nav-btn" title="Classes">
+            <i class="fa-solid fa-book"></i>
+            <span class="nav-text">Classes</span>
+        </a>
+    </div>
     
                                 <!-- Main Body - Display Everything -->
     <div class="container">
@@ -25,10 +52,8 @@
             <button class="logout-btn" id="logoutBtn">Logout</button>
         </div>
 
-
-
         <!-- School-wide Attendance Summary -->
-        <div class="section">
+        <div class="section" id="attendance">
             <div class="section-header">
                 <h2>ATTENDANCE SUMMARY</h2>
             </div>
@@ -40,7 +65,7 @@
 
 
         <!-- System Configuration -->
-        <div class="section">
+        <div class="section" id="config">
             <div class="section-header">
                 <h2>SYSTEM CONFIGURATION</h2>
             </div>
@@ -78,7 +103,7 @@
 
 
         <!-- Manage Teachers Section -->
-        <div class="section">
+        <div class="section" id="teachers">
 
             <div class="section-header">
                 <h2>MANAGE TEACHERS</h2>
@@ -129,7 +154,7 @@
 
 
         <!-- Manage Students Section -->
-        <div class="section">
+        <div class="section" id="students">
 
             <div class="section-header">
                 <h2>MANAGE STUDENTS</h2>
@@ -212,7 +237,7 @@
 
 
         <!-- Manage Classes Section -->
-        <div class="section">
+        <div class="section" id="classes">
 
             <div class="section-header">
                 <h2>MANAGE CLASSES</h2>
@@ -664,7 +689,7 @@
                     <strong>CSV Format Required:</strong> First row must be column headers:
                 </p>
                 <pre style="border-radius: 8px; border: 2px solid black; font-size: 10px; overflow-x: auto;">
-                    
+
     id,subject,program,teacher_id,blocks,class_room,class_building,class_day,class_time_start,class_time_end,class_level,class_color
     50001,Appdev,BSIT,1001,"A,B",101,Main,"M,W,F",08:00,10:00,1,blue
     50002,Ethics,BSCS,1002,"A,B,C",102,Annex,"T,Th",10:30,12:30,2,green

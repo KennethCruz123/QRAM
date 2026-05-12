@@ -8,9 +8,43 @@
     <link rel="shortcut icon" href="/asset/image/Logo_QRAM.png" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://kit.fontawesome.com/dfcddacee2.js" crossorigin="anonymous"></script>
     
 </head>
+
 <body>
+
+    <!-- Side Navigation Bar (Floating) -->
+    <div class="side-nav">
+        <a href="#attendance" class="side-nav-btn" title="Attendance">
+            <i class="fa-solid fa-clipboard-list"></i>
+            <span class="nav-text">Attendance</span>
+        </a>
+        <a href="#config" class="side-nav-btn" title="Config">
+            <i class="fa-solid fa-gear"></i>
+            <span class="nav-text">System Config</span>
+        </a>
+        <a href="#audit" class="side-nav-btn" title="Audit Logs">
+            <i class="fa-solid fa-address-book"></i>
+            <span class="nav-text">Audit Logs</span>
+        </a>
+        <a href="#teachers" class="side-nav-btn" title="Teachers">
+            <i class="fa-solid fa-person-chalkboard"></i>
+            <span class="nav-text">Teachers</span>
+        </a>
+        <a href="#students" class="side-nav-btn" title="Students">
+            <i class="fa-solid fa-user-graduate"></i>
+            <span class="nav-text">Students</span>
+        </a>
+        <a href="#classes" class="side-nav-btn" title="Classes">
+            <i class="fa-solid fa-book"></i>
+            <span class="nav-text">Classes</span>
+        </a>
+        <a href="#admins" class="side-nav-btn" title="Admins">
+            <i class="fa-solid fa-users-gear"></i>
+            <span class="nav-text">Admins</span>
+        </a>
+    </div>
     
                                 <!-- Main Body - Display Everything -->
     <div class="container">
@@ -25,10 +59,8 @@
             <button class="logout-btn" id="logoutBtn">Logout</button>
         </div>
 
-        
-
         <!-- School-wide Attendance Summary -->
-        <div class="section">
+        <div class="section" id="attendance">
             <div class="section-header">
                 <h2>ATTENDANCE SUMMARY</h2>
             </div>
@@ -40,7 +72,7 @@
 
 
         <!-- System Configuration -->
-        <div class="section">
+        <div class="section" id="config">
 
             <div class="section-header">
                 <h2>SYSTEM CONFIGURATION</h2>
@@ -82,13 +114,20 @@
 
 
         <!-- Audit Logs Section -->
-        <div class="section" style="height: 90vh; display: flex; flex-direction: column;">
+        <div class="section" id="audit">
 
             <div class="section-header">
                 <h2>AUDIT LOGS</h2>
             </div>
 
-            <div class="table-container" style="flex: 1; overflow-y: auto;">
+            <!-- Search Bar -->
+            <div class="filter-sort-bar">
+                <div class="filter-group">
+                    <input type="text" id="auditSearch" placeholder="Search by User, Action, or Details..." class="filter-input">
+                </div>
+            </div>
+
+            <div class="table-container">
                 <table class="audit-table">
                     <thead>
                         <tr>
@@ -100,9 +139,16 @@
                         </tr>
                     </thead>
                     <tbody id="auditLogsBody">
-                        <tr><td colspan="5" style="text-align: center; padding: 40px;">Loading...</td></tr>
+                       
                     </tbody>
                 </table>
+            </div>
+
+            <!-- ADD THIS PAGINATION SECTION -->
+            <div class="pagination" id="auditPagination">
+                <button class="pagination-btn prev-audit">Previous</button>
+                <span class="page-info" id="auditPageInfo">Page 1 of 1</span>
+                <button class="pagination-btn next-audit">Next</button>
             </div>
 
         </div>
@@ -110,7 +156,7 @@
 
 
         <!-- Manage Teachers Section -->
-        <div class="section">
+        <div class="section" id="teachers">
 
             <div class="section-header">
                 <h2>MANAGE TEACHERS</h2>
@@ -161,7 +207,7 @@
 
 
         <!-- Manage Students Section -->
-        <div class="section">
+        <div class="section" id="students">
 
         <div class="section-header">
             <h2>MANAGE STUDENTS</h2>
@@ -242,7 +288,7 @@
 
 
         <!-- Manage Classes Section -->
-        <div class="section">
+        <div class="section" id="classes">
 
 
             <div class="section-header">
@@ -297,7 +343,7 @@
 
 
         <!-- Manage Admin Section -->
-        <div class="section">
+        <div class="section" id="admins">
 
             <div class="section-header">
                 <h2>MANAGE ADMINS</h2>
