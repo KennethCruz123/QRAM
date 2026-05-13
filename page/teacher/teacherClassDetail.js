@@ -818,7 +818,25 @@ async function updateAttendanceSummary() {
     updateAttendanceChart(totalPresent, totalLate, totalAbsent, totalRecords)
 }
 
-// Download all attendance records as CSV
+
+// Download all attendance record
+// Convert month/day to comparable number (MMDD)
+function getMonthDayNumber(month, day) {
+    if (!month || !day) return null
+    return parseInt(month + day)
+}
+
+
+// Get filter values
+const startMonth = document.getElementById('startMonth').value
+const startDay = document.getElementById('startDay').value
+const endMonth = document.getElementById('endMonth').value
+const endDay = document.getElementById('endDay').value
+
+console.log('Filter values:', { startMonth, startDay, endMonth, endDay })
+console.log('All sessions:', sessions.map(s => ({ date: s.session_date, month: s.session_date.split('-')[1], day: s.session_date.split('-')[2] })))
+
+// Download all attendance record with month-day range filter
 async function downloadAllAttendance() {
     if (students.length === 0) {
         showError('No students found in this class')
@@ -830,9 +848,41 @@ async function downloadAllAttendance() {
         return
     }
     
+    // Get filter values
+    const startMonth = document.getElementById('startMonth').value
+    const startDay = document.getElementById('startDay').value
+    const endMonth = document.getElementById('endMonth').value
+    const endDay = document.getElementById('endDay').value
+    
+    // Filter sessions by month-day range (ignoring year)
+    let sessionsToDownload = [...sessions]
+    
+    if (startMonth && startDay && endMonth && endDay) {
+        const startNum = parseInt(startMonth + startDay)
+        const endNum = parseInt(endMonth + endDay)
+        
+        sessionsToDownload = sessionsToDownload.filter(session => {
+            const parts = session.session_date.split('-')
+            const sessionMonth = parts[1]
+            const sessionDay = parts[2]
+            const sessionNum = parseInt(sessionMonth + sessionDay)
+            
+            if (startNum <= endNum) {
+                return sessionNum >= startNum && sessionNum <= endNum
+            } else {
+                return sessionNum >= startNum || sessionNum <= endNum
+            }
+        })
+        
+        if (sessionsToDownload.length === 0) {
+            showError(`No sessions found from ${startMonth}/${startDay} to ${endMonth}/${endDay}`)
+            return
+        }
+    }
+    
     try {
         // Get all session IDs
-        const sessionIds = sessions.map(s => s.id)
+        const sessionIds = sessionsToDownload.map(s => s.id)
         
         // Get all attendance records
         const { data: allAttendance } = await supabase
@@ -840,7 +890,7 @@ async function downloadAllAttendance() {
             .select('session_id, student_id, status')
             .in('session_id', sessionIds)
         
-        // Create a map for quick lookup: sessionId_studentId -> status
+        // Create a map for quick lookup
         const attendanceMap = {}
         if (allAttendance) {
             allAttendance.forEach(record => {
@@ -849,65 +899,133 @@ async function downloadAllAttendance() {
             })
         }
         
-        // Prepare CSV data
-        const csvRows = []
-        
-        // Header row - Put summary columns FIRST, then session dates
-        const headers = ['Student ID', 'Student Name', 'Total Present', 'Total Late', 'Total Absent']
-        for (const session of sessions) {
-            headers.push(`${session.session_date}`)
+        // Create workbook and worksheet
+        const workbook = new ExcelJS.Workbook()
+        let sheetName = `Class ${classId} Attendance`
+        if (startMonth && startDay && endMonth && endDay) {
+            sheetName += ` (${startMonth}-${startDay} to ${endMonth}-${endDay})`
         }
-        csvRows.push(headers.join(','))
+        const worksheet = workbook.addWorksheet(sheetName)
         
-        // Data rows for each student
+        // Define columns
+        const columns = [
+            { header: 'Student ID', key: 'id', width: 12 },
+            { header: 'Student Name', key: 'name', width: 25 },
+            { header: 'Total Present', key: 'present', width: 14 },
+            { header: 'Total Late', key: 'late', width: 11 },
+            { header: 'Total Absent', key: 'absent', width: 13 }
+        ]
+        
+        // Add session date columns
+        for (const session of sessionsToDownload) {
+            columns.push({ header: session.session_date, key: `date_${session.id}`, width: 12 })
+        }
+        
+        worksheet.columns = columns
+        
+        // Style the header row
+        const headerRow = worksheet.getRow(1)
+        headerRow.eachCell((cell, colNumber) => {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0077FF' } }
+            cell.font = { bold: true, color: { argb: 'FFFFFFFF' } }
+            cell.alignment = { horizontal: 'center', vertical: 'middle' }
+            cell.border = {
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' }
+            }
+            
+            if (colNumber === 3) {
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF00FF00' } }
+                cell.font = { bold: true, color: { argb: 'FF000000' } }
+            } else if (colNumber === 4) {
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }
+                cell.font = { bold: true, color: { argb: 'FF000000' } }
+            } else if (colNumber === 5) {
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF0000' } }
+                cell.font = { bold: true, color: { argb: 'FFFFFFFF' } }
+            }
+        })
+        
+        // Add data rows
         for (const student of students) {
-            // Track counts for this student
             let presentCount = 0
             let lateCount = 0
             let absentCount = 0
             
-            // Get status for each session (to count and also to add to row)
-            const sessionStatuses = []
-            for (const session of sessions) {
+            const rowData = {
+                id: student.id,
+                name: student.name,
+                present: 0,
+                late: 0,
+                absent: 0
+            }
+            
+            for (const session of sessionsToDownload) {
                 const key = `${session.id}_${student.id}`
                 const status = attendanceMap[key]
                 
                 if (status === 'present') {
-                    sessionStatuses.push('P')
+                    rowData[`date_${session.id}`] = 'P'
                     presentCount++
                 } else if (status === 'late') {
-                    sessionStatuses.push('L')
+                    rowData[`date_${session.id}`] = 'L'
                     lateCount++
                 } else {
-                    sessionStatuses.push('A')
+                    rowData[`date_${session.id}`] = 'A'
                     absentCount++
                 }
             }
             
-            // Build row: Student ID, Student Name, counts FIRST, then session statuses
-            const row = [student.id, student.name, presentCount, lateCount, absentCount, ...sessionStatuses]
-            csvRows.push(row.join(','))
+            rowData.present = presentCount
+            rowData.late = lateCount
+            rowData.absent = absentCount
+            
+            const row = worksheet.addRow(rowData)
+            
+            row.eachCell((cell, colNumber) => {
+                cell.alignment = { horizontal: 'center', vertical: 'middle' }
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                }
+                
+                if (colNumber >= 6) {
+                    if (cell.value === 'P') {
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF00FF00' } }
+                        cell.font = { bold: true, color: { argb: 'FF000000' } }
+                    } else if (cell.value === 'L') {
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }
+                        cell.font = { bold: true, color: { argb: 'FF000000' } }
+                    } else if (cell.value === 'A') {
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF0000' } }
+                        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } }
+                    }
+                }
+            })
         }
         
-        // Download CSV file
-        const csvContent = csvRows.join('\n')
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+        // Generate and download file
+        const buffer = await workbook.xlsx.writeBuffer()
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
         const link = document.createElement('a')
         const url = URL.createObjectURL(blob)
         link.href = url
-        link.setAttribute('download', `attendance_class_${classId}.csv`)
+        link.download = `attendance_class_${classId}.xlsx`
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
         URL.revokeObjectURL(url)
         
-        showSuccess(`Downloaded attendance for ${students.length} students and ${sessions.length} sessions!`)
+        showSuccess(`Downloaded attendance for ${students.length} students and ${sessionsToDownload.length} sessions!`)
     } catch (error) {
         console.error('Error downloading attendance:', error)
-        showError('Error downloading attendance')
+        showError('Error downloading attendance: ' + error.message)
     }
 }
-
 
 
 
