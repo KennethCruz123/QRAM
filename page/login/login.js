@@ -204,6 +204,47 @@ document.getElementById('savePasswordBtn').addEventListener('click', async () =>
     }
 })
 
+// Toggle password visibility
+const togglePassword = document.getElementById('togglePassword')
+const passwordInput = document.getElementById('password')
+
+togglePassword.addEventListener('click', () => {
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text'
+        togglePassword.classList.remove('fa-eye')
+        togglePassword.classList.add('fa-eye-slash')
+    } else {
+        passwordInput.type = 'password'
+        togglePassword.classList.remove('fa-eye-slash')
+        togglePassword.classList.add('fa-eye')
+    }
+})
+
+// Toggle password visibility for modal
+function togglePasswordVisibility(inputId, iconId) {
+    const input = document.getElementById(inputId)
+    const icon = document.getElementById(iconId)
+    
+    if (input && icon) {
+        icon.addEventListener('click', () => {
+            if (input.type === 'password') {
+                input.type = 'text'
+                icon.classList.remove('fa-eye')
+                icon.classList.add('fa-eye-slash')
+            } else {
+                input.type = 'password'
+                icon.classList.remove('fa-eye-slash')
+                icon.classList.add('fa-eye')
+            }
+        })
+    }
+}
+
+// Apply to all three password fields
+togglePasswordVisibility('currentPassword', 'toggleCurrentPassword')
+togglePasswordVisibility('newPassword', 'toggleNewPassword')
+togglePasswordVisibility('confirmPassword', 'toggleConfirmPassword')
+
 // Close modal when clicking outside
 window.onclick = function(event) {
     const modal = document.getElementById('changePasswordModal')
@@ -211,3 +252,22 @@ window.onclick = function(event) {
         closePasswordModal()
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

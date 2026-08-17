@@ -6,6 +6,8 @@
     <title>Login Page</title>
     <link rel="stylesheet" href="login.css">
     <link rel="shortcut icon" href="/asset/image/Logo_QRAM.png" type="image/x-icon">
+    <script src="https://kit.fontawesome.com/dfcddacee2.js" crossorigin="anonymous"></script>
+
 </head>
 <body>
     <div class="split-layout">
@@ -36,10 +38,13 @@
                             <input type="text" placeholder="Enter your user ID" id="userId">
                         </div>
 
-                        <div class="input-field">
-                            <label>Password</label>
+                    <div class="input-field">
+                        <label>Password</label>
+                        <div class="password-wrapper">
                             <input type="password" placeholder="Enter your password" id="password">
+                            <i class="fa-regular fa-eye" id="togglePassword"></i>
                         </div>
+                    </div>
 
                         <div class="forgot-link">
                             <a href="#" id="changePasswordLink">Change Password</a>
@@ -52,40 +57,49 @@
         </div>
     </div>
 
-    <!-- Change Password Modal (keep as is) -->
-    <div id="changePasswordModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Change Password</h3>
-                <button class="close-modal" onclick="closePasswordModal()">&times;</button>
-            </div>
+<!-- Change Password Modal -->
+<div id="changePasswordModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Change Password</h3>
+            <button class="close-modal" onclick="closePasswordModal()">&times;</button>
+        </div>
 
-            <div class="form-group">
-                <label>User ID</label>
-                <input type="text" id="changeUserId" placeholder="Enter your User ID">
-            </div>
+        <div class="form-group">
+            <label>User ID</label>
+            <input type="text" id="changeUserId" placeholder="Enter your User ID">
+        </div>
 
-            <div class="form-group">
-                <label>Current Password</label>
+        <div class="form-group">
+            <label>Current Password</label>
+            <div class="password-wrapper">
                 <input type="password" id="currentPassword" placeholder="Enter current password">
-            </div>
-
-            <div class="form-group">
-                <label>New Password</label>
-                <input type="password" id="newPassword" placeholder="Enter new password">
-            </div>
-
-            <div class="form-group">
-                <label>Confirm New Password</label>
-                <input type="password" id="confirmPassword" placeholder="Confirm new password">
-            </div>
-
-            <div class="modal-buttons">
-                <button class="cancel-btn" onclick="closePasswordModal()">Cancel</button>
-                <button class="submit-btn" id="savePasswordBtn">Update Password</button>
+                <i class="fa-regular fa-eye" id="toggleCurrentPassword"></i>
             </div>
         </div>
+
+        <div class="form-group">
+            <label>New Password</label>
+            <div class="password-wrapper">
+                <input type="password" id="newPassword" placeholder="Enter new password">
+                <i class="fa-regular fa-eye" id="toggleNewPassword"></i>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Confirm New Password</label>
+            <div class="password-wrapper">
+                <input type="password" id="confirmPassword" placeholder="Confirm new password">
+                <i class="fa-regular fa-eye" id="toggleConfirmPassword"></i>
+            </div>
+        </div>
+
+        <div class="modal-buttons">
+            <button class="cancel-btn" onclick="closePasswordModal()">Cancel</button>
+            <button class="submit-btn" id="savePasswordBtn">Update Password</button>
+        </div>
     </div>
+</div>
 
     <script type="module" src="login.js"></script>
 </body>
