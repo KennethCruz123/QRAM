@@ -85,11 +85,6 @@ body {
         flex-direction: column;
         display: flex;
     }
-
-    .left-panel {
-        flex: 0 0 auto;
-        margin-bottom: 20px;
-    }
     
     .left-panel img{
         width: 75px;
