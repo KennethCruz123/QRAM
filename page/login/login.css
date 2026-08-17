@@ -6,8 +6,6 @@
     box-sizing: border-box;
 }
 
-
-
 body {
     background-image: url(/asset/image/landing_page_background.png);
     background-repeat: no-repeat;
@@ -21,10 +19,7 @@ body {
     align-items: center;
 }
 
-
-
-
-/* Split Layout - Add this at the top of your CSS file */
+/* Split Layout container*/
 .split-layout {
     display: flex;
     width: 100%;
@@ -39,17 +34,13 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-
-    
 }
 
 .image-overlay {
-
     z-index: 1;
     text-align: center;
     color: white;
 }
-
 
 .image-overlay h2 {
     font-size: 28px;
@@ -74,20 +65,14 @@ body {
     justify-content: center;
 }
 
-/* Make sure your existing login container fits */
 .right-panel .login-container {
     width: 100%;
     padding: 20px;
 }
 
-
 /* Responsive - stack on mobile */
 @media (max-width: 800px) {
-    
-    body {
-        overflow: hidden;
-        height: 100vh;
-    }
+
     .split-layout {
         flex-direction: column;
         min-height: 100vh;
@@ -441,21 +426,3 @@ body {
     border-radius: 6px;
     cursor: pointer;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
