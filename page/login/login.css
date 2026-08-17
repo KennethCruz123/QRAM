@@ -82,11 +82,14 @@ body {
 @media (max-width: 800px) {
     .split-layout {
         flex-direction: column;
+        display: flex;
     }
     
-    .left-panel {
-        min-height: 200px;
+    .left-panel img{
+        width: 75px;
     }
+
+
 }
 
 /* Login */
