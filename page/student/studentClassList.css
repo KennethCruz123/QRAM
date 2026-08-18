@@ -61,16 +61,17 @@ body {
 }
 
 .view-qr-btn{
-    background-color: green;
+    background-color :#0077FF;
+}
+
+.attendance-summary-btn{
+    background-color: #0077FF;
 }
 
 .logout-btn{
     background-color: red;
 }
 
-.attendance-summary-btn{
-    background-color: #FFC107;
-}
 
 /* Page Title */
 .page-title {
