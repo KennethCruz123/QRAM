@@ -160,14 +160,53 @@ function populateDateDropdowns() {
 async function loadStudents() {
     const { data } = await supabase
         .from('class_list')
-        .select('student_id, users(id, name)')
+        .select('student_id, users(id, name, first_name, last_name, middle_name, suffix)')
         .eq('class_id', parseInt(classId))
         .order('student_id')
     
     if (data) {
-        students = data.map(s => ({ id: s.users.id, name: s.users.name }))
+        students = data.map(s => {
+            const user = s.users
+            // Format: Last Name, First Name M. Suffix
+            let formattedName = ''
+            
+            if (user.last_name) {
+                formattedName += user.last_name
+            }
+            if (user.first_name) {
+                formattedName += ', ' + user.first_name
+            }
+            if (user.middle_name) {
+                formattedName += ' ' + user.middle_name.charAt(0).toUpperCase() + '.'
+            }
+            if (user.suffix) {
+                formattedName += ' ' + user.suffix
+            }
+            
+            // Fallback to 'name' if columns are empty
+            if (!formattedName.trim()) {
+                formattedName = user.name || 'Unknown'
+            }
+            
+            return { 
+                id: user.id, 
+                name: formattedName.trim(),
+                first_name: user.first_name,
+                last_name: user.last_name,
+                middle_name: user.middle_name,
+                suffix: user.suffix
+            }
+        })
+        
+        // Sort students alphabetically by last name
+        students.sort((a, b) => {
+            const lastNameA = a.last_name || ''
+            const lastNameB = b.last_name || ''
+            return lastNameA.localeCompare(lastNameB)
+        })
     }
 }
+
 
 // Load sessions
 async function loadSessions() {
@@ -278,7 +317,7 @@ async function renderMatrix() {
         }
 
         // Set row background color based on remaining absences
-        if (remainingAbsences === 1) {
+        if (remainingAbsences <= 1) {
             statusClass = 'status-danger'
         } else {
             statusClass = 'status-safe'

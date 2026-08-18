@@ -32,32 +32,26 @@ async function logAction(action, details) {
 
 // Show Message (Success, Error, Info)
 function showMessage(message, type = 'info') {
-    // Remove any existing message first
     const existingMsg = document.querySelector('.floating-message')
     if (existingMsg) existingMsg.remove()
     
-    // Create message element
     const msg = document.createElement('div')
     msg.className = `floating-message ${type}`
     msg.textContent = message
     document.body.appendChild(msg)
     
-    // Auto remove after 2 seconds
     setTimeout(() => msg.remove(), 2000)
 }
 
-// Shortcuts
 function showSuccess(msg) { showMessage(msg, 'success') }
 function showError(msg) { showMessage(msg, 'error') }
 function showInfo(msg) { showMessage(msg, 'info') }
 
 // Custom confirm dialog
 function showConfirm(message, itemName, onConfirm) {
-    // Remove any existing confirm modal
     const existingConfirm = document.querySelector('.custom-confirm')
     if (existingConfirm) existingConfirm.remove()
     
-    // Create confirm modal
     const confirmBox = document.createElement('div')
     confirmBox.className = 'custom-confirm'
     confirmBox.innerHTML = `
@@ -71,7 +65,6 @@ function showConfirm(message, itemName, onConfirm) {
     `
     document.body.appendChild(confirmBox)
     
-    // Handle button clicks
     confirmBox.querySelector('.confirm-yes').onclick = () => {
         confirmBox.remove()
         onConfirm()
@@ -91,7 +84,6 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
     const userName = sessionStorage.getItem('userName')
     const userRole = sessionStorage.getItem('userRole')
     
-    // Track logout for admin and super_admin
     if (userId && userName && (userRole === 'admin' || userRole === 'super_admin')) {
         await supabase.from('audit_logs').insert({
             user_id: parseInt(userId),
@@ -110,12 +102,10 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 
 // ========== MODAL FUNCTIONS ==========
 
-// Shows Modals
 window.showModal = (modalId) => {
     document.getElementById(modalId).style.display = 'flex'
 }
 
-// Close Modals and Ready the password 
 window.closeModal = (modalId) => {
     document.getElementById(modalId).style.display = 'none';
     
@@ -141,7 +131,6 @@ window.closeModal = (modalId) => {
 
 // ========== GLOBAL VARIABLES ==========
 
-// Null by default
 let currentEditTeacherId = null
 let currentEditStudentId = null
 let currentEditClassId = null
@@ -150,7 +139,6 @@ let currentSelectedClassId = null
 let currentSelectedClassName = null
 let currentViewStudentId = null
 
-// Filter and Sort Variables
 let teacherSearchTerm = ''
 let teacherSortBy = 'id_asc'
 
@@ -163,13 +151,11 @@ let studentProgramFilter = 'all'
 let classSearchTerm = ''
 let classSortBy = 'code_asc'
 
-// Modal Filter Variables
 let modalStudentsList = []
 let modalEnrolledIds = []
 let modalSelectedLevels = []    
 let modalSelectedBlocks = []     
 
-// Pagination Variables
 let currentTeacherPage = 1
 let currentStudentPage = 1
 let currentClassPage = 1
@@ -184,7 +170,7 @@ let pendingSelectedStudentIds = []
 
 
 
-// ========== HELPER FUNCTION ==========
+// ========== HELPER FUNCTIONS ==========
 
 // Generate QR code token
 function generateQRValue(studentId) {
@@ -206,18 +192,39 @@ function formatDays(days) {
     return days?.map(d => daysMap[d] || d).join(', ') || 'N/A';
 }
 
+// Helper: Combine name parts into full name (for database)
+function combineFullName(firstName, lastName, middleName = '', suffix = '') {
+    let parts = []
+    if (firstName) parts.push(firstName)
+    if (middleName) parts.push(middleName)
+    if (lastName) parts.push(lastName)
+    if (suffix) parts.push(suffix)
+    return parts.join(' ').trim() || ''
+}
+
+// Helper: Format for display (First M. Last Suffix)
+function formatDisplayName(firstName, lastName, middleName = '', suffix = '') {
+    let parts = []
+    if (firstName) parts.push(firstName)
+    if (middleName) {
+        const initial = middleName.charAt(0).toUpperCase()
+        parts.push(initial + '.')
+    }
+    if (lastName) parts.push(lastName)
+    if (suffix) parts.push(suffix)
+    return parts.join(' ').trim() || 'N/A'
+}
+
 // Displays and Filters the Student List Inside the "Add Student to Class"
 function renderModalStudentList() {
     let filteredStudents = [...modalStudentsList]
     
-    // Apply level filter (if any levels selected)
     if (modalSelectedLevels.length > 0) {
         filteredStudents = filteredStudents.filter(student => 
             modalSelectedLevels.includes(student.level?.toString())
         )
     }
     
-    // Apply block filter (if any blocks selected)
     if (modalSelectedBlocks.length > 0) {
         filteredStudents = filteredStudents.filter(student => 
             modalSelectedBlocks.includes(student.block)
@@ -227,19 +234,23 @@ function renderModalStudentList() {
     const studentsContainer = document.getElementById('studentsListContainer')
     if (!studentsContainer) return
     
-    // Build list using pendingSelectedStudentIds (not enrolledIds directly)
-    studentsContainer.innerHTML = filteredStudents.map(student => `
+    studentsContainer.innerHTML = filteredStudents.map(student => {
+        const displayName = formatDisplayName(
+            student.first_name || student.name,
+            student.last_name || student.name,
+            student.middle_name,
+            student.suffix
+        )
+        return `
         <div class="student-list-item">
             <label class="checkbox-label">
                 <input type="checkbox" value="${student.id}" 
                     ${pendingSelectedStudentIds.includes(student.id) ? 'checked' : ''}>
-                <span><strong>${student.id}</strong> - ${student.name} 
-                </span>
+                <span><strong>${student.id}</strong> - ${displayName}</span>
             </label>
         </div>
-    `).join('')
+    `}).join('')
     
-    // Re-attach event listeners to update pending selections when checkboxes change
     document.querySelectorAll('#studentsListContainer input[type="checkbox"]').forEach(cb => {
         cb.addEventListener('change', (e) => {
             const studentId = parseInt(e.target.value)
@@ -259,22 +270,28 @@ function renderModalStudentList() {
 
 
 
-// clear all form fields and reset edit mode flags of Teacher
+// ========== RESET FORM FUNCTIONS ==========
+
 function resetTeacherForm() {
     document.getElementById('teacherId').disabled = false;
     document.getElementById('teacherId').value = '';
-    document.getElementById('teacherName').value = '';
+    document.getElementById('teacherFirstName').value = '';
+    document.getElementById('teacherMiddleName').value = '';
+    document.getElementById('teacherLastName').value = '';
+    document.getElementById('teacherSuffix').value = '';
     document.getElementById('teacherEmail').value = '';
     document.getElementById('teacherPhone').value = '';
     document.getElementById('teacherPassword').value = '';
     currentEditTeacherId = null;
 }
 
-// clear all form fields and reset edit mode flags of Student
 function resetStudentForm() {
     document.getElementById('studentId').disabled = false;
     document.getElementById('studentId').value = '';
-    document.getElementById('studentName').value = '';
+    document.getElementById('studentFirstName').value = '';
+    document.getElementById('studentMiddleName').value = '';
+    document.getElementById('studentLastName').value = '';
+    document.getElementById('studentSuffix').value = '';
     document.getElementById('studentProgram').value = '';
     document.getElementById('studentLevel').value = '';
     document.getElementById('studentBlock').value = '';
@@ -284,7 +301,6 @@ function resetStudentForm() {
     currentEditStudentId = null;
 }
 
-// clear all form fields and reset edit mode flags of Class
 function resetClassForm() {
     document.getElementById('classCode').disabled = false;
     document.getElementById('classCode').value = '';
@@ -307,29 +323,31 @@ function resetClassForm() {
 
 // Teachers filter and sort function
 function getFilteredAndSortedTeachers() {
-
-    // Make a copy of all Teachers
     let filteredTeachers = [...allTeachers]
     
-    // Apply Searching Filter 
     if (teacherSearchTerm) {
         const searchLower = teacherSearchTerm.toLowerCase()
-
-        // Assigned and Created New Filtered Teacher/s Array
         filteredTeachers = filteredTeachers.filter(teacher => 
             teacher.id.toString().includes(searchLower) ||
+            (teacher.first_name && teacher.first_name.toLowerCase().includes(searchLower)) ||
+            (teacher.last_name && teacher.last_name.toLowerCase().includes(searchLower)) ||
             (teacher.name && teacher.name.toLowerCase().includes(searchLower)) ||
             (teacher.email && teacher.email.toLowerCase().includes(searchLower))
         )
     }
     
-    // Apply sorting Filter
     filteredTeachers.sort((a, b) => {
         switch(teacherSortBy) {
             case 'id_asc': return a.id - b.id
             case 'id_desc': return b.id - a.id
-            case 'name_asc': return (a.name || '').localeCompare(b.name || '')
-            case 'name_desc': return (b.name || '').localeCompare(a.name || '')
+            case 'name_asc': 
+                const nameA = (a.last_name || a.name || '').toLowerCase()
+                const nameB = (b.last_name || b.name || '').toLowerCase()
+                return nameA.localeCompare(nameB)
+            case 'name_desc': 
+                const nameC = (a.last_name || a.name || '').toLowerCase()
+                const nameD = (b.last_name || b.name || '').toLowerCase()
+                return nameD.localeCompare(nameC)
             default: return 0
         }
     })
@@ -339,51 +357,50 @@ function getFilteredAndSortedTeachers() {
 
 // Students filter and sort function
 function getFilteredAndSortedStudents() {
-
-    // Make a copy of all Students
     let filteredStudents = [...allStudents]
 
-    // Apply program filter
     if (studentProgramFilter !== 'all') {
         filteredStudents = filteredStudents.filter(student => 
             student.program === studentProgramFilter
         )
     }
     
-    // Apply level filter
     if (studentLevelFilter !== 'all') {
         filteredStudents = filteredStudents.filter(student => 
             student.level && student.level.toString() === studentLevelFilter
         )
     }
     
-    // Apply block filter
     if (studentBlockFilter !== 'all') {
         filteredStudents = filteredStudents.filter(student => 
             student.block === studentBlockFilter
         )
     }
     
-    // Apply Searching Filter 
     if (studentSearchTerm) {
         const searchLower = studentSearchTerm.toLowerCase()
-        
-        // Assigned and Created New Filtered Student/s Array
         filteredStudents = filteredStudents.filter(student => 
             student.id.toString().includes(searchLower) ||
+            (student.first_name && student.first_name.toLowerCase().includes(searchLower)) ||
+            (student.last_name && student.last_name.toLowerCase().includes(searchLower)) ||
             (student.name && student.name.toLowerCase().includes(searchLower)) ||
             (student.level && student.level.toString().includes(searchLower)) || 
             (student.email && student.email.toLowerCase().includes(searchLower))
         )
     }
     
-    // Apply sorting Filter
     filteredStudents.sort((a, b) => {
         switch(studentSortBy) {
             case 'id_asc': return a.id - b.id
             case 'id_desc': return b.id - a.id
-            case 'name_asc': return (a.name || '').localeCompare(b.name || '')
-            case 'name_desc': return (b.name || '').localeCompare(a.name || '')
+            case 'name_asc': 
+                const nameA = (a.last_name || a.name || '').toLowerCase()
+                const nameB = (b.last_name || b.name || '').toLowerCase()
+                return nameA.localeCompare(nameB)
+            case 'name_desc': 
+                const nameC = (a.last_name || a.name || '').toLowerCase()
+                const nameD = (b.last_name || b.name || '').toLowerCase()
+                return nameD.localeCompare(nameC)
             default: return 0
         }
     })
@@ -391,18 +408,12 @@ function getFilteredAndSortedStudents() {
     return filteredStudents
 }
 
-// Classees filter and sort function
+// Classes filter and sort function
 function getFilteredAndSortedClasses() {
-
-    // Make a copy of all Classes
     let filteredClasses = [...allClasses]
     
-    
-    // Apply Searching Filter 
     if (classSearchTerm) {
         const searchLower = classSearchTerm.toLowerCase()
-    
-        // Assigned and Created New Filtered Class/es Array
         filteredClasses = filteredClasses.filter(classItem => 
             classItem.id.toString().includes(searchLower) ||
             (classItem.subject && classItem.subject.toLowerCase().includes(searchLower)) ||
@@ -411,7 +422,6 @@ function getFilteredAndSortedClasses() {
         )
     }
     
-    // Apply sorting
     filteredClasses.sort((a, b) => {
         switch(classSortBy) {
             case 'code_asc': return a.id - b.id
@@ -433,101 +443,85 @@ function getFilteredAndSortedClasses() {
 
 // Load Teachers
 async function loadTeachers() {
-    
-    // Query database
     const { data } = await supabase
         .from('users')
         .select('*')
         .eq('role', 'teacher')
         .order('id')
     
-
-    // If no Teacher where to put "No teacher found"
     const tbody = document.getElementById('teachersBody')
     const paginationDiv = document.getElementById('teachersPagination')
     
-    // If no Teacher Found
     if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5">No teachers found<\/td><\/tr>'
+        tbody.innerHTML = '<tr><td colspan="5">No teachers found</td></tr>'
         if (paginationDiv) paginationDiv.style.display = 'none'
         return
     }
     
-    // Put all Teachers in Global Variable (For Filtering and Sorting)
     allTeachers = data
-
-    // Reset to Fist page
     currentTeacherPage = 1
 
-    // Show Pagination
     if (paginationDiv) paginationDiv.style.display = 'flex'
     renderTeacherPage()
 }
 
 // Render Teachers
 function renderTeacherPage() {
-
-    // If you're in this fucntion that means there is Teacher Found
-    // Where to put them, Here
     const tbody = document.getElementById('teachersBody')
+    const filteredTeachers = getFilteredAndSortedTeachers()
     
-    // Get filtered and sorted teachers
-    const filteredTeachers = getFilteredAndSortedTeachers() // Remember this FilteredAndSorted function
-    
-    // If the filtered has no result
     if (filteredTeachers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5">No teachers found matching your search<\/td><\/tr>'
+        tbody.innerHTML = '<tr><td colspan="5">No teachers found matching your search</td></tr>'
         const pageInfo = document.getElementById('teacherPageInfo')
-
-        // Show "Page 0 of 0" since no result 
         if (pageInfo) pageInfo.textContent = `Page 0 of 0`
         return
     }
     
-    // Calculate pagination based on filtered results
     const start = (currentTeacherPage - 1) * itemsPerPage
     const end = start + itemsPerPage
     const pageTeachers = filteredTeachers.slice(start, end)
     
-    // Clear existing rows before displaying
     tbody.innerHTML = ''
     
-    // Display actual teachers
     pageTeachers.forEach(teacher => {
+        const displayName = formatDisplayName(
+            teacher.first_name || teacher.name,
+            teacher.last_name || teacher.name,
+            teacher.middle_name,
+            teacher.suffix
+        )
+        
         tbody.innerHTML += `
             <tr>
-                <td>${teacher.id}<\/td>
-                <td>${teacher.name || 'N/A'}<\/td>
-                <td>${teacher.email || 'N/A'}<\/td>
-                <td>${teacher.phone || 'N/A'}<\/td>
+                <td>${teacher.id}</td>
+                <td>${displayName}</td>
+                <td>${teacher.email || 'N/A'}</td>
+                <td>${teacher.phone || 'N/A'}</td>
                 <td class="action-buttons">
                     <button class="btn-edit" onclick="editTeacher('${teacher.id}')">Edit</button>
-                    <button class="btn-delete" onclick="deleteTeacher('${teacher.id}', '${teacher.name}')">Delete</button>
-                <\/td>
-            <\/tr>
+                    <button class="btn-delete" onclick="deleteTeacher('${teacher.id}', '${displayName}')">Delete</button>
+                </td>
+            </tr>
         `
     })
     
-    // Add empty rows to reach itemsPerPage (10 rows)
     const remainingRows = itemsPerPage - pageTeachers.length
     for (let i = 0; i < remainingRows; i++) {
         tbody.innerHTML += `
             <tr class="empty-row">
-                <td>&nbsp;<\/td>
-                <td>&nbsp;<\/td>
-                <td>&nbsp;<\/td>
-                <td>&nbsp;<\/td>
-                <td>&nbsp;<\/td>
-            <\/tr>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+            </tr>
         `
     }
     
-    // Calculate and display current page and total page
     const totalPages = Math.ceil(filteredTeachers.length / itemsPerPage)
     const pageInfo = document.getElementById('teacherPageInfo')
     if (pageInfo) pageInfo.textContent = `Page ${currentTeacherPage} of ${totalPages}`
     
-    // Enable/disable pagination buttons
     const prevBtn = document.querySelector('.prev-teacher')
     const nextBtn = document.querySelector('.next-teacher')
     if (prevBtn && nextBtn) {
@@ -540,105 +534,92 @@ function renderTeacherPage() {
 
 // Load Students
 async function loadStudents() {
-
-    // Query database
     const { data } = await supabase
         .from('users')
         .select('*')
         .eq('role', 'student')
         .order('id')
     
-    // If no Student where to put "No Student found"
     const tbody = document.getElementById('studentsBody')
     const paginationDiv = document.getElementById('studentsPagination')
     
-    // If no Student Found
     if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6">No students found<\/td><\/tr>'
+        tbody.innerHTML = '<tr><td colspan="8">No students found</td></tr>'
         if (paginationDiv) paginationDiv.style.display = 'none'
         return
     }
     
-    // Put all Students in Global Variable (For Filtering and Sorting)
     allStudents = data
-
-    // Reset to Fist page
     currentStudentPage = 1
         
-    // Show Pagination
     if (paginationDiv) paginationDiv.style.display = 'flex'
     renderStudentPage()
 }
 
 // Render Students
 function renderStudentPage() {
-
-    // If you're in this fucntion that means there is Student Found
-    // Where to put them, Here
     const tbody = document.getElementById('studentsBody')
+    const filteredStudents = getFilteredAndSortedStudents()
     
-    // Get filtered and sorted students
-    const filteredStudents = getFilteredAndSortedStudents() // Remember this FilteredAndSorted function
-    
-    // If the filtered has no result
     if (filteredStudents.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8">No students found matching your search or filter<\/td><\/tr>'
+        tbody.innerHTML = '<tr><td colspan="8">No students found matching your search or filter</td></tr>'
         const pageInfo = document.getElementById('studentPageInfo')
-
-        // Show "Page 0 of 0" since no result 
         if (pageInfo) pageInfo.textContent = `Page 0 of 0`
         return
     }
     
-    // Calculate pagination based on filtered results
     const start = (currentStudentPage - 1) * itemsPerPage
     const end = start + itemsPerPage
     const pageStudents = filteredStudents.slice(start, end)
     
-    // Clear existing rows before displaying
     tbody.innerHTML = ''
     
-    // Display actual students
     pageStudents.forEach(student => {
+        const displayName = formatDisplayName(
+            student.first_name || student.name,
+            student.last_name || student.name,
+            student.middle_name,
+            student.suffix
+        )
+        
         tbody.innerHTML += `
             <tr>
-                <td>${student.id}<\/td>
-                <td>${student.name || 'N/A'}<\/td>
+                <td>${student.id}</td>
+                <td>${displayName}</td>
                 <td>${student.program || 'N/A'}</td>
-                <td>${student.level || 'N/A'}<\/td>
-                <td>${student.block || 'N/A'}<\/td>
-                <td>${student.email || 'N/A'}<\/td>
-                <td>${student.phone || 'N/A'}<\/td>
+                <td>${student.level || 'N/A'}</td>
+                <td>${student.block || 'N/A'}</td>
+                <td>${student.email || 'N/A'}</td>
+                <td>${student.phone || 'N/A'}</td>
                 <td class="action-buttons">
                     <button class="btn-view" onclick="viewStudent('${student.id}')">View</button>
                     <button class="btn-edit" onclick="editStudent('${student.id}')">Edit</button>
-                    <button class="btn-delete" onclick="deleteStudent('${student.id}', '${student.name}')">Delete</button>
-                <\/td>
-            <\/tr>
+                    <button class="btn-delete" onclick="deleteStudent('${student.id}', '${displayName}')">Delete</button>
+                </td>
+            </tr>
         `
     })
     
-    // Add empty rows to reach itemsPerPage (10 rows)
     const remainingRows = itemsPerPage - pageStudents.length
     for (let i = 0; i < remainingRows; i++) {
         tbody.innerHTML += `
             <tr class="empty-row">
-                <td>&nbsp;<\/td>
-                <td>&nbsp;<\/td>
-                <td>&nbsp;<\/td>
-                <td>&nbsp;<\/td>
-                <td>&nbsp;<\/td>
-                <td>&nbsp;<\/td>
-            <\/tr>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+            </tr>
         `
     }
     
-    // Calculate and display current page and total page
     const totalPages = Math.ceil(filteredStudents.length / itemsPerPage)
     const pageInfo = document.getElementById('studentPageInfo')
     if (pageInfo) pageInfo.textContent = `Page ${currentStudentPage} of ${totalPages}`
     
-    // Enable/disable pagination buttons
     const prevBtn = document.querySelector('.prev-student')
     const nextBtn = document.querySelector('.next-student')
     if (prevBtn && nextBtn) {
@@ -651,34 +632,26 @@ function renderStudentPage() {
 
 // Load Classes
 async function loadClasses() {
-
-    // Query database 
-    // Get all classes with teacher names in ONE query using JOIN
     const { data: classesWithTeachers, error } = await supabase
         .from('classes')
         .select(`
             *,
-            users!teacher_id (name)
+            users!teacher_id (name, first_name, last_name, middle_name, suffix)
         `)
 
-    // If no Class where to put "No Class found"
     const tbody = document.getElementById('classesBody')
     const paginationDiv = document.getElementById('classesPagination')
     
-    // If the filtered has no result
     if (error || !classesWithTeachers || classesWithTeachers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7">No classes found<\/td><\/tr>'
+        tbody.innerHTML = '<tr><td colspan="7">No classes found</td></tr>'
         if (paginationDiv) paginationDiv.style.display = 'none'
         return
     }
     
-    // Query database 
-    // Get all student counts in ONE query
     const { data: enrollments } = await supabase
         .from('class_list')
         .select('class_id', { count: 'exact' })
     
-    // Count students per class
     const studentCounts = {}
     if (enrollments) {
         enrollments.forEach(enrollment => {
@@ -686,9 +659,17 @@ async function loadClasses() {
         })
     }
     
-    // Process all classes 
     const processedClasses = classesWithTeachers.map(classItem => {
-        const teacherName = classItem.users?.name || 'Not assigned'
+        const teacher = classItem.users
+        let teacherName = 'Not assigned'
+        if (teacher) {
+            teacherName = formatDisplayName(
+                teacher.first_name || teacher.name,
+                teacher.last_name || teacher.name,
+                teacher.middle_name,
+                teacher.suffix
+            )
+        }
         
         return {
             ...classItem,
@@ -699,87 +680,71 @@ async function loadClasses() {
         }
     })
     
-    // Put all Classes in Global Variable (For Filtering and Sorting)
     allClasses = processedClasses
-
-    // Reset to Fist page
     currentClassPage = 1
     
-    // Show Pagination
     if (paginationDiv) paginationDiv.style.display = 'flex'
     renderClassPage()
 }
 
 // Render Classes
 function renderClassPage() {
-
-    // If you're in this fucntion that means there is Class Found
-    // Where to put them, Here
     const tbody = document.getElementById('classesBody')
+    const filteredClasses = getFilteredAndSortedClasses()
     
-    // Get filtered and sorted classes
-    const filteredClasses = getFilteredAndSortedClasses() // Remember this FilteredAndSorted function
-    
-    // If the filtered has no result
     if (filteredClasses.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6">No classes found matching your search<\/td><\/tr>'
+        tbody.innerHTML = '<tr><td colspan="6">No classes found matching your search</td></tr>'
         const pageInfo = document.getElementById('classPageInfo')
         if (pageInfo) pageInfo.textContent = `Page 0 of 0`
         return
     }
     
-    // Calculate and display current page and total page
     const start = (currentClassPage - 1) * itemsPerPage
     const end = start + itemsPerPage
     const pageClasses = filteredClasses.slice(start, end)
     
-    // Clear existing rows before displaying
     tbody.innerHTML = ''
     
-    // Display actual classes
     for (const classItem of pageClasses) {
         tbody.innerHTML += `
             <tr>
-                <td>${classItem.id}<\/td>
-                <td>${classItem.subject || 'N/A'}<\/td>
+                <td>${classItem.id}</td>
+                <td>${classItem.subject || 'N/A'}</td>
                 <td>${classItem.programDisplay}</td> 
-                <td>${classItem.class_level || 'N/A'}<\/td>
-                <td>${classItem.blocksDisplay}<\/td>
-                <td>${classItem.teacherName}<\/td>
-                <td>${classItem.studentCount} students<\/td>
+                <td>${classItem.class_level || 'N/A'}</td>
+                <td>${classItem.blocksDisplay}</td>
+                <td>${classItem.teacherName}</td>
+                <td>${classItem.studentCount} students</td>
                 <td class="action-buttons">
                     <button class="btn-view" onclick="viewClassStudents('${classItem.id}', '${classItem.subject}')">View</button>
                     <button class="btn-add-student" onclick="addStudentToClass('${classItem.id}', '${classItem.subject}')">+/- Student</button>
                     <button class="btn-edit" onclick="editClass('${classItem.id}')">Edit</button>
                     <button class="btn-delete" onclick="deleteClass('${classItem.id}', '${classItem.subject}')">Delete</button>
-                <\/td>
-            <\/tr>
+                </td>
+            </tr>
         `
     }
     
-    // Add empty rows to reach itemsPerPage (10 rows)
     const remainingRows = itemsPerPage - pageClasses.length
     for (let i = 0; i < remainingRows; i++) {
         tbody.innerHTML += `
             <tr class="empty-row">
-                <td>&nbsp;<\/td>
-                <td>&nbsp;<\/td>
                 <td>&nbsp;</td>
-                <td>&nbsp;<\/td>
-                <td>&nbsp;<\/td> 
-                <td>&nbsp;<\/td>
-                <td>&nbsp;<\/td>
-                <td>&nbsp;<\/td>
-            <\/tr>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td> 
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+            </tr>
         `
     }
     
-    // Calculate and display current page and total page
     const totalPages = Math.ceil(filteredClasses.length / itemsPerPage)
     const pageInfo = document.getElementById('classPageInfo')
     if (pageInfo) pageInfo.textContent = `Page ${currentClassPage} of ${totalPages}`
     
-    // Enable/disable pagination buttons
     const prevBtn = document.querySelector('.prev-class')
     const nextBtn = document.querySelector('.next-class')
     if (prevBtn && nextBtn) {
@@ -792,11 +757,7 @@ function renderClassPage() {
 
 
 
-// ========== ADD/EDIT/DELETE/SAVE FUNCTIONS ==========
-
-
-
-// ===== Teacher =====
+// ========== TEACHER CRUD ==========
 
 // Open teacher modal in "Add" mode
 document.getElementById('addTeacherBtn').onclick = () => {
@@ -805,7 +766,10 @@ document.getElementById('addTeacherBtn').onclick = () => {
     document.getElementById('saveTeacherBtn').textContent = 'Create';
     document.getElementById('teacherId').disabled = false;
     document.getElementById('teacherId').value = '';
-    document.getElementById('teacherName').value = '';
+    document.getElementById('teacherFirstName').value = '';
+    document.getElementById('teacherMiddleName').value = '';
+    document.getElementById('teacherLastName').value = '';
+    document.getElementById('teacherSuffix').value = '';
     document.getElementById('teacherEmail').value = '';
     document.getElementById('teacherPhone').value = '';
     document.getElementById('teacherPassword').value = '';
@@ -815,24 +779,23 @@ document.getElementById('addTeacherBtn').onclick = () => {
 
 // Open teacher modal in "Edit" mode
 window.editTeacher = async (id) => {
-    
-    // Store current Teacher ID
     currentEditTeacherId = id;
 
-    // Query database
     const { data } = await supabase
         .from('users')
         .select('*')
         .eq('id', id)
         .single();
     
-    // Ensures Teacher exists before trying to display data.
     if (data) {
         document.getElementById('teacherModalTitle').textContent = 'Edit Teacher';
         document.getElementById('saveTeacherBtn').textContent = 'Update';
         document.getElementById('teacherId').value = id;
         document.getElementById('teacherId').disabled = true;
-        document.getElementById('teacherName').value = data.name || '';
+        document.getElementById('teacherFirstName').value = data.first_name || '';
+        document.getElementById('teacherMiddleName').value = data.middle_name || '';
+        document.getElementById('teacherLastName').value = data.last_name || '';
+        document.getElementById('teacherSuffix').value = data.suffix || '';
         document.getElementById('teacherEmail').value = data.email || '';
         document.getElementById('teacherPhone').value = data.phone || '';
         document.getElementById('teacherPassword').value = '';
@@ -841,7 +804,7 @@ window.editTeacher = async (id) => {
     }
 }
 
-// Delete Teacher from database
+// Delete Teacher
 window.deleteTeacher = async (id, name) => {
     showConfirm('Delete Teacher', name, async () => {
         await supabase.from('users').delete().eq('id', id)
@@ -852,66 +815,75 @@ window.deleteTeacher = async (id, name) => {
     })
 }
 
-// Save Teacher (Add or Edit based on mode)
+// Save Teacher
 document.getElementById('saveTeacherBtn').onclick = async () => {
-    
-    //  Get Form Values
     const teacherId = parseInt(document.getElementById('teacherId').value)
-    const name = document.getElementById('teacherName').value.trim()
+    const firstName = document.getElementById('teacherFirstName').value.trim()
+    const middleName = document.getElementById('teacherMiddleName').value.trim()
+    const lastName = document.getElementById('teacherLastName').value.trim()
+    const suffix = document.getElementById('teacherSuffix').value.trim()
     const email = document.getElementById('teacherEmail').value.trim()
     const phone = document.getElementById('teacherPhone').value.trim()
     const password = document.getElementById('teacherPassword').value
     
-    // Validation
-    if (!teacherId || !name || !email) {
-        showError('Please fill all fields')
+    if (!teacherId || !firstName || !lastName || !email) {
+        showError('Please fill all required fields (ID, First Name, Last Name, Email)')
         return
     }
     
-    // Query database
+    const fullName = combineFullName(firstName, lastName, middleName, suffix)
+    
     const { data: existing } = await supabase
         .from('users')
         .select('id')
         .eq('id', teacherId)
         .single()
     
-    // Prevent Duplicate IDs (on Add only)
     if (existing && !currentEditTeacherId) {
         showError(`Teacher ID ${teacherId} already exists!`)
-        
         return
     }
     
-    // Check if we're in ADD mode (not editing)
     if (!currentEditTeacherId) {
-        // New Teacher must have a password
         if (!password) {
             showError('Password is required for new teacher')
             return
         }
         
-        // Add new row to database
         const { error } = await supabase.from('users').insert({
-            id: teacherId, name, email, phone, password, role: 'teacher'
+            id: teacherId,
+            first_name: firstName,
+            middle_name: middleName || null,
+            last_name: lastName,
+            suffix: suffix || null,
+            name: fullName,
+            email: email,
+            phone: phone || null,
+            password: password,
+            role: 'teacher'
         })
         
         if (error) {
             showError("Error: " + error.message)
         } else {
             showSuccess('Teacher saved!')
-            await logAction('ADD_TEACHER', `Added teacher: ${name} (ID: ${teacherId})`)
+            await logAction('ADD_TEACHER', `Added teacher: ${fullName} (ID: ${teacherId})`)
             closeModal('teacherModal')
             await loadTeachers()
             await updateStats()
         }
-        
-    // UPDATE Existing Teacher (Edit Mode)    
     } else {
-
-        // Fields that can be updated
-        const updateData = { name, email, phone, role: 'teacher' }
-
-        // If entered a new password Update it
+        const updateData = {
+            first_name: firstName,
+            middle_name: middleName || null,
+            last_name: lastName,
+            suffix: suffix || null,
+            name: fullName,
+            email: email,
+            phone: phone || null,
+            role: 'teacher'
+        }
+        
         if (password && password.trim() !== '') updateData.password = password
         
         const { error } = await supabase.from('users').update(updateData).eq('id', teacherId)
@@ -920,6 +892,7 @@ document.getElementById('saveTeacherBtn').onclick = async () => {
             showError("Error: " + error.message)
         } else {
             showSuccess('Teacher updated!')
+            await logAction('EDIT_TEACHER', `Updated teacher: ${fullName} (ID: ${teacherId})`)
             closeModal('teacherModal')
             await loadTeachers()
             await updateStats()
@@ -931,7 +904,7 @@ document.getElementById('saveTeacherBtn').onclick = async () => {
 
 
 
-// ===== Student =====
+// ========== STUDENT CRUD ==========
 
 // Open Student modal in "Add" mode
 document.getElementById('addStudentBtn').onclick = () => {
@@ -940,7 +913,12 @@ document.getElementById('addStudentBtn').onclick = () => {
     document.getElementById('saveStudentBtn').textContent = 'Create';
     document.getElementById('studentId').disabled = false;
     document.getElementById('studentId').value = '';
-    document.getElementById('studentName').value = '';
+    document.getElementById('studentFirstName').value = '';
+    document.getElementById('studentMiddleName').value = '';
+    document.getElementById('studentLastName').value = '';
+    document.getElementById('studentSuffix').value = '';
+    document.getElementById('studentProgram').value = '';
+    document.getElementById('studentLevel').value = '';
     document.getElementById('studentBlock').value = '';
     document.getElementById('studentEmail').value = '';
     document.getElementById('studentPhone').value = '';
@@ -951,24 +929,23 @@ document.getElementById('addStudentBtn').onclick = () => {
 
 // Open Student modal in "Edit" mode
 window.editStudent = async (id) => {
-
-    // Store current Student ID
     currentEditStudentId = id;
 
-    // Query database
     const { data } = await supabase
         .from('users')
         .select('*')
         .eq('id', id)
         .single();
     
-    // Ensures Teacher exists before trying to display data.
     if (data) {
         document.getElementById('studentModalTitle').textContent = 'Edit Student';
         document.getElementById('saveStudentBtn').textContent = 'Update';
         document.getElementById('studentId').value = id;
         document.getElementById('studentId').disabled = true;
-        document.getElementById('studentName').value = data.name || '';
+        document.getElementById('studentFirstName').value = data.first_name || '';
+        document.getElementById('studentMiddleName').value = data.middle_name || '';
+        document.getElementById('studentLastName').value = data.last_name || '';
+        document.getElementById('studentSuffix').value = data.suffix || '';
         document.getElementById('studentProgram').value = data.program || '';
         document.getElementById('studentLevel').value = data.level || ''; 
         document.getElementById('studentBlock').value = data.block || '';
@@ -980,7 +957,7 @@ window.editStudent = async (id) => {
     }
 }
 
-// Delete Student from database
+// Delete Student
 window.deleteStudent = async (id, name) => {
     showConfirm('Delete Student', name, async () => {
         await supabase.from('users').delete().eq('id', id)
@@ -991,91 +968,106 @@ window.deleteStudent = async (id, name) => {
     })
 }
 
-// Save Student (Add or Edit based on mode)
+// Save Student
 document.getElementById('saveStudentBtn').onclick = async () => {
-
-    // Get Form Values
+    const studentId = parseInt(document.getElementById('studentId').value)
+    const firstName = document.getElementById('studentFirstName').value.trim()
+    const middleName = document.getElementById('studentMiddleName').value.trim()
+    const lastName = document.getElementById('studentLastName').value.trim()
+    const suffix = document.getElementById('studentSuffix').value.trim()
+    const email = document.getElementById('studentEmail').value.trim()
+    const phone = document.getElementById('studentPhone').value.trim()
+    const password = document.getElementById('studentPassword').value
+    const program = document.getElementById('studentProgram')?.value || null
+    const level = document.getElementById('studentLevel')?.value || null
+    const block = document.getElementById('studentBlock')?.value || null
     
-    const studentId = parseInt(document.getElementById('studentId').value);
-    const name = document.getElementById('studentName').value.trim();
-    const email = document.getElementById('studentEmail').value.trim();
-    const phone = document.getElementById('studentPhone').value.trim();
-    const password = document.getElementById('studentPassword').value;
-    const program = document.getElementById('studentProgram')?.value || null;
-    const level = document.getElementById('studentLevel')?.value || null;
-    const block = document.getElementById('studentBlock')?.value || null;
-    
-    // Validation
-    if (!studentId || !name || !email) {
-        showError('Please fill all fields')
-        return;
+    if (!studentId || !firstName || !lastName || !email) {
+        showError('Please fill all required fields (ID, First Name, Last Name, Email)')
+        return
     }
     
-    // Query database
+    const fullName = combineFullName(firstName, lastName, middleName, suffix)
+    
     const { data: existing } = await supabase
         .from('users')
         .select('id')
         .eq('id', studentId)
-        .single();
+        .single()
     
-    // Prevent Duplicate IDs (on Add only)
     if (existing && !currentEditStudentId) {
         showError(`Student ID ${studentId} already exists!`)
-        return;
+        return
     }
     
-    // Check if we're in ADD mode (not editing)
     if (!currentEditStudentId) {
-        // New Student must have a password
         if (!password) {
             showError('Password is required for new student')
-            return;
+            return
         }
         
-        // Add new row to database
-        const qrValue = generateQRValue(studentId);
+        const qrValue = generateQRValue(studentId)
         const { error } = await supabase.from('users').insert({
-            id: studentId, name, email, phone, password, program: program, level: level,role: 'student', block: block, qr_value: qrValue
-        });
+            id: studentId,
+            first_name: firstName,
+            middle_name: middleName || null,
+            last_name: lastName,
+            suffix: suffix || null,
+            name: fullName,
+            email: email,
+            phone: phone || null,
+            password: password,
+            program: program,
+            level: level,
+            role: 'student',
+            block: block,
+            qr_value: qrValue
+        })
         
         if (error) {
             showError("Error: " + error.message)
         } else {
             showSuccess('Student saved!')
-            await logAction('ADD_STUDENT', `Added student: ${name} (ID: ${studentId}, Program: ${program}, Level: ${level}, Block: ${block})`)
-            closeModal('studentModal');
+            await logAction('ADD_STUDENT', `Added student: ${fullName} (ID: ${studentId})`)
+            closeModal('studentModal')
             await loadStudents()
             await updateStats()
         }
-
-    // UPDATE Existing Student (Edit Mode)
     } else {
-
-        // Fields that can be updated
-        const updateData = { name, email, phone, role: 'student', program: program,level: level, block: block };
-
-        // If entered a new password Update it
-        if (password && password.trim() !== '') updateData.password = password;
+        const updateData = {
+            first_name: firstName,
+            middle_name: middleName || null,
+            last_name: lastName,
+            suffix: suffix || null,
+            name: fullName,
+            email: email,
+            phone: phone || null,
+            role: 'student',
+            program: program,
+            level: level,
+            block: block
+        }
         
-
-        const { error } = await supabase.from('users').update(updateData).eq('id', studentId);
+        if (password && password.trim() !== '') updateData.password = password
+        
+        const { error } = await supabase.from('users').update(updateData).eq('id', studentId)
         
         if (error) {
             showError("Error: " + error.message)
         } else {
             showSuccess('Student updated!')
-            closeModal('studentModal');
+            closeModal('studentModal')
             await loadStudents()
             await updateStats()
         }
     }
     
-    document.getElementById('studentPassword').value = '';
+    document.getElementById('studentPassword').value = ''
 }
 
 
 
-// ==== Class =====
+// ========== CLASS CRUD ==========
 
 // Open Class modal in "Add" mode
 document.getElementById('addClassBtn').onclick = async () => {
@@ -1088,12 +1080,18 @@ document.getElementById('addClassBtn').onclick = async () => {
     
     const { data: teachers } = await supabase
         .from('users')
-        .select('id, name')
+        .select('id, name, first_name, last_name, middle_name, suffix')
         .eq('role', 'teacher')
         .order('id')
     
     teachers?.forEach(teacher => {
-        select.innerHTML += `<option value="${teacher.id}">${teacher.id} - ${teacher.name}</option>`
+        const displayName = formatDisplayName(
+            teacher.first_name || teacher.name,
+            teacher.last_name || teacher.name,
+            teacher.middle_name,
+            teacher.suffix
+        )
+        select.innerHTML += `<option value="${teacher.id}">${teacher.id} - ${displayName}</option>`
     })
     
     showModal('classModal')
@@ -1101,18 +1099,14 @@ document.getElementById('addClassBtn').onclick = async () => {
 
 // Open Class modal in "Edit" mode
 window.editClass = async (id) => {
-    
-    // Store current Class ID
     currentEditClassId = id;
 
-    // Query database
     const { data: classData } = await supabase
         .from('classes')
         .select('*')
         .eq('id', id)
         .single();
     
-    // Ensures Class exists before trying to display data.
     if (classData) {
         document.getElementById('classModalTitle').textContent = 'Edit Class';
         document.getElementById('saveClassBtn').textContent = 'Update';
@@ -1148,20 +1142,26 @@ window.editClass = async (id) => {
         
         const { data: teachers } = await supabase
             .from('users')
-            .select('id, name')
+            .select('id, name, first_name, last_name, middle_name, suffix')
             .eq('role', 'teacher')
             .order('id');
         
         teachers?.forEach(teacher => {
+            const displayName = formatDisplayName(
+                teacher.first_name || teacher.name,
+                teacher.last_name || teacher.name,
+                teacher.middle_name,
+                teacher.suffix
+            )
             const selected = classData.teacher_id === teacher.id ? 'selected' : '';
-            select.innerHTML += `<option value="${teacher.id}" ${selected}>${teacher.id} - ${teacher.name}</option>`;
+            select.innerHTML += `<option value="${teacher.id}" ${selected}>${teacher.id} - ${displayName}</option>`;
         });
         
         showModal('classModal');
     }
 };
 
-// Delete Class from database
+// Delete Class
 window.deleteClass = async (id, subject) => {
     showConfirm('Delete Class', subject, async () => {
         await supabase.from('classes').delete().eq('id', id)
@@ -1172,10 +1172,8 @@ window.deleteClass = async (id, subject) => {
     })
 }
 
-// Save Class (Add or Edit based on mode)
+// Save Class
 document.getElementById('saveClassBtn').onclick = async () => {
-
-    //  Get Form Values
     const classCode = parseInt(document.getElementById('classCode').value)
     const subject = document.getElementById('classSubject').value.trim()
     const program = document.getElementById('classProgram').value || null;
@@ -1196,20 +1194,17 @@ document.getElementById('saveClassBtn').onclick = async () => {
         blocks.push(cb.value)
     })
     
-    // Validation
     if (!classCode || !subject || !teacherId || !room || !startTime || !endTime || days.length === 0) {
         showError('Please fill all fields')
         return
     }
     
-    // Query database
     const { data: existing } = await supabase
         .from('classes')
         .select('id')
         .eq('id', classCode)
         .single()
     
-    //Prevent Duplicate IDs (on Add only)
     if (existing && !currentEditClassId) {
         showError(`Class Code ${classCode} already exists!`)
         return
@@ -1236,7 +1231,7 @@ document.getElementById('saveClassBtn').onclick = async () => {
         showError("Error: " + error.message)
     } else {
         showSuccess(currentEditClassId ? 'Class updated!' : 'Class saved!')
-        await logAction(currentEditClassId ? 'EDIT_CLASS' : 'ADD_CLASS', `${currentEditClassId ? 'Edited' : 'Added'} class: ${subject} (Code: ${classCode}, Program: ${program})`)
+        await logAction(currentEditClassId ? 'EDIT_CLASS' : 'ADD_CLASS', `${currentEditClassId ? 'Edited' : 'Added'} class: ${subject} (Code: ${classCode})`)
         closeModal('classModal')
         await loadClasses()
         await updateStats()
@@ -1245,38 +1240,34 @@ document.getElementById('saveClassBtn').onclick = async () => {
 
 
 
-// ========== SPECIAL FUNCTION ==========
+// ========== VIEW STUDENT ==========
 
-// View Student QR code
 window.viewStudent = async (id) => {
     try {
-
-        // Query database
         const { data: student } = await supabase
             .from('users')
             .select('*')
             .eq('id', id)
             .single()
         
-        // If Student is found Display Student Information in Modal
         if (student) {
+            const displayName = formatDisplayName(
+                student.first_name || student.name,
+                student.last_name || student.name,
+                student.middle_name,
+                student.suffix
+            )
+            
             document.getElementById('viewStudentId').textContent = id
-            document.getElementById('viewStudentName').textContent = student.name || 'N/A'
+            document.getElementById('viewStudentName').textContent = displayName
             document.getElementById('viewStudentEmail').textContent = student.email || 'N/A'
             document.getElementById('viewStudentPhone').textContent = student.phone || 'N/A'
             
-            // Get QR value from database
             let qrValue = student.qr_value
-            
-            // where to put
             const qrDisplay = document.getElementById('viewQRCodeDisplay')
-            
-            // Clear before displaying
             qrDisplay.innerHTML = ''
 
             const canvas = document.createElement('canvas')
-            
-            // Generate QR code image from qr_value
             QRCode.toCanvas(canvas, qrValue, { width: 260, margin: 1 }, (error) => {
                 if (error) qrDisplay.innerHTML = '<p style="color:red;">Error generating QR code</p>'
                 else qrDisplay.appendChild(canvas)
@@ -1290,7 +1281,6 @@ window.viewStudent = async (id) => {
     }
 }
 
-// Set up to download QR code img
 document.getElementById('downloadViewQrBtn').onclick = () => {
     const canvas = document.querySelector('#viewQRCodeDisplay canvas')
     if (canvas) {
@@ -1301,16 +1291,15 @@ document.getElementById('downloadViewQrBtn').onclick = () => {
     }
 }
 
-// Class List Enrrolment 
-// Open Add/Remove Students modal
+
+
+// ========== ADD STUDENT TO CLASS ==========
+
 window.addStudentToClass = async (classId, className) => {
-    
-    // Store class info
     currentSelectedClassId = classId
     currentSelectedClassName = className
     document.getElementById('selectedClassName').textContent = className
     
-    // Get the class to know its program restriction
     const { data: classData } = await supabase
         .from('classes')
         .select('program')
@@ -1319,10 +1308,9 @@ window.addStudentToClass = async (classId, className) => {
     
     const classProgram = classData?.program || null
     
-    // Get students - filter by program if class has one
     let query = supabase
         .from('users')
-        .select('id, name, block, level, program')
+        .select('id, name, first_name, last_name, middle_name, suffix, block, level, program')
         .eq('role', 'student')
         .order('id')
     
@@ -1331,25 +1319,17 @@ window.addStudentToClass = async (classId, className) => {
     }
     
     const { data: students } = await query
-    
-    // Get already enrolled students for this class
     const { data: enrolled } = await supabase
         .from('class_list')
         .select('student_id')
         .eq('class_id', classId)
     
-    // Store data for filtering and rendering
     modalStudentsList = students || []
     modalEnrolledIds = enrolled?.map(e => e.student_id) || []
-    
-    // IMPORTANT: Initialize pending selections with currently enrolled students
     pendingSelectedStudentIds = [...modalEnrolledIds]
-    
-    // Reset filter variables (empty arrays = show all)
     modalSelectedLevels = []
     modalSelectedBlocks = []
     
-    // Reset level checkboxes (uncheck all)
     document.querySelectorAll('.level-filter-checkbox').forEach(cb => {
         cb.checked = false
         cb.onchange = () => {
@@ -1357,11 +1337,10 @@ window.addStudentToClass = async (classId, className) => {
             document.querySelectorAll('.level-filter-checkbox:checked').forEach(checked => {
                 modalSelectedLevels.push(checked.value)
             })
-            renderModalStudentList()  // This preserves pendingSelectedStudentIds
+            renderModalStudentList()
         }
     })
     
-    // Reset block checkboxes (uncheck all)
     document.querySelectorAll('.block-filter-checkbox').forEach(cb => {
         cb.checked = false
         cb.onchange = () => {
@@ -1369,13 +1348,11 @@ window.addStudentToClass = async (classId, className) => {
             document.querySelectorAll('.block-filter-checkbox:checked').forEach(checked => {
                 modalSelectedBlocks.push(checked.value)
             })
-            renderModalStudentList()  // This preserves pendingSelectedStudentIds
+            renderModalStudentList()
         }
     })
     
-    // Select All button
     document.getElementById('modalSelectAllBtn').onclick = () => {
-        // Get all visible student IDs (after filters)
         const visibleCheckboxes = document.querySelectorAll('#studentsListContainer input[type="checkbox"]')
         visibleCheckboxes.forEach(cb => {
             cb.checked = true
@@ -1386,9 +1363,7 @@ window.addStudentToClass = async (classId, className) => {
         })
     }
     
-    // Clear All button
     document.getElementById('modalClearAllBtn').onclick = () => {
-        // Uncheck all visible students
         const visibleCheckboxes = document.querySelectorAll('#studentsListContainer input[type="checkbox"]')
         visibleCheckboxes.forEach(cb => {
             cb.checked = false
@@ -1400,22 +1375,15 @@ window.addStudentToClass = async (classId, className) => {
         })
     }
     
-    // Render the student list
     renderModalStudentList()
-    
-    // Show modal
     showModal('addStudentToClassModal')
 }
 
-// Save changes to class enrollment (add/remove students)
 document.getElementById('saveAddStudentsBtn').onclick = async () => {
-    // Use pendingSelectedStudentIds (not checkboxes)
     const selectedStudentIds = pendingSelectedStudentIds
     
-    // Remove all existing students from this class
     await supabase.from('class_list').delete().eq('class_id', currentSelectedClassId)
     
-    // If any students were selected, add them back
     if (selectedStudentIds.length > 0) {
         const enrollments = selectedStudentIds.map(studentId => ({
             class_id: currentSelectedClassId,
@@ -1430,38 +1398,40 @@ document.getElementById('saveAddStudentsBtn').onclick = async () => {
     await updateStats()
 }
 
-// View Class Student
-// Open modal to see all students enrolled in a class
-window.viewClassStudents = async (classId, className) => {
 
-    // Query database
+
+// ========== VIEW CLASS STUDENTS ==========
+
+window.viewClassStudents = async (classId, className) => {
     const { data: classData } = await supabase
         .from('classes')
         .select('*')
         .eq('id', classId)
         .single()
     
-    // Display class information if found
     if (classData) {
-        // Get teacher name if assigned
         let teacherName = 'Not assigned'
         if (classData.teacher_id) {
             const { data: teacher } = await supabase
                 .from('users')
-                .select('name')
+                .select('name, first_name, last_name, middle_name, suffix')
                 .eq('id', classData.teacher_id)
                 .single()
-            if (teacher) teacherName = teacher.name
+            if (teacher) {
+                teacherName = formatDisplayName(
+                    teacher.first_name || teacher.name,
+                    teacher.last_name || teacher.name,
+                    teacher.middle_name,
+                    teacher.suffix
+                )
+            }
         }
         
-        // Format program display
         let programDisplay = 'All Programs (Open)'
         if (classData.program === 'BSIT') programDisplay = 'BSIT'
-        else if (classData.program === 'CCS') programDisplay = 'CCS'
+        else if (classData.program === 'BSCS') programDisplay = 'BSCS'
         else if (classData.program === 'BSEMC') programDisplay = 'BSEMC'
         
-        
-        // Fill class details in modal
         document.getElementById('viewClassName').textContent = classData.subject || 'N/A'
         document.getElementById('viewClassProgram').textContent = programDisplay
         document.getElementById('viewClassBuilding').textContent = classData.class_building || 'N/A'
@@ -1472,31 +1442,33 @@ window.viewClassStudents = async (classId, className) => {
         document.getElementById('viewClassTeacher').textContent = teacherName
     }
     
-    // Query database
     const { data: enrollments } = await supabase
         .from('class_list')
-        .select('student_id, users(id, name, program)')
+        .select('student_id, users(id, name, first_name, last_name, middle_name, suffix, program)')
         .eq('class_id', classId)
         .order('student_id')
     
     const studentsList = document.getElementById('classStudentsList')
     const studentCountSpan = document.getElementById('modalStudentCount')
     
-    // Display message if no students enrolled
     if (!enrollments || enrollments.length === 0) {
         studentsList.innerHTML = '<p>No students enrolled in this class</p>'
         if (studentCountSpan) studentCountSpan.textContent = '0'
     } else {
-        // Clear and show student count
         studentsList.innerHTML = ''
         if (studentCountSpan) studentCountSpan.textContent = enrollments.length
         
-        // Display each enrolled student with program
         enrollments.forEach(enrollment => {
             const student = enrollment.users
+            const displayName = formatDisplayName(
+                student.first_name || student.name,
+                student.last_name || student.name,
+                student.middle_name,
+                student.suffix
+            )
             studentsList.innerHTML += `
                 <div class="student-list-item">
-                    <span><strong>${student.id}</strong> - ${student.name}</span>
+                    <span><strong>${student.id}</strong> - ${displayName}</span>
                 </div>
             `
         })
@@ -1507,7 +1479,8 @@ window.viewClassStudents = async (classId, className) => {
 
 
 
-// ============ STATS FUNCTIONS ============
+// ========== STATS FUNCTIONS ==========
+
 async function updateStats() {
     const { count: teacherCount } = await supabase
         .from('users')
@@ -1526,10 +1499,7 @@ async function updateStats() {
 
 
 
-// ========== EVENT LISTENER ==========
-
-
-// PAGINAGTION EVENT LISTENER
+// ========== EVENT LISTENERS ==========
 
 // Teachers pagination
 document.querySelector('.prev-teacher')?.addEventListener('click', () => {
@@ -1596,10 +1566,6 @@ if (nextClassBtn) {
     })
 }
 
-
-
-// FILTER & SORT EVENT LISTENERS
-
 // Teacher Filter and Sort
 const teacherSearchInput = document.getElementById('teacherSearch')
 if (teacherSearchInput) {
@@ -1638,61 +1604,47 @@ if (studentSortSelect) {
     })
 }
 
-
-// Program Filter and Sort Button
+// Program Filter Buttons
 const programFilterBtns = document.querySelectorAll('.program-filter-btn')
 if (programFilterBtns.length > 0) {
     programFilterBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
-            // Remove active class from all program buttons
             programFilterBtns.forEach(b => b.classList.remove('active'))
-            // Add active class to clicked button
             btn.classList.add('active')
-            // Set the program filter value
             studentProgramFilter = btn.getAttribute('data-program')
-            // Reset to first page and re-render
             currentStudentPage = 1
             renderStudentPage()
         })
     })
 }
 
-// Level Filter and Sort Button
+// Level Filter Buttons
 const levelFilterBtns = document.querySelectorAll('.level-filter-btn')
 if (levelFilterBtns.length > 0) {
     levelFilterBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
-            // Remove active class from all level buttons
             levelFilterBtns.forEach(b => b.classList.remove('active'))
-            // Add active class to clicked button
             btn.classList.add('active')
-            // Set the level filter value
             studentLevelFilter = btn.getAttribute('data-level')
-            // Reset to first page and re-render
             currentStudentPage = 1
             renderStudentPage()
         })
     })
 }
 
-// Block Filter and Sort Button
+// Block Filter Buttons
 const blockFilterBtns = document.querySelectorAll('.block-filter-btn')
 if (blockFilterBtns.length > 0) {
     blockFilterBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
-            // Remove active class from all buttons
             blockFilterBtns.forEach(b => b.classList.remove('active'))
-            // Add active class to clicked button
             btn.classList.add('active')
-            // Set the block filter value
             studentBlockFilter = btn.getAttribute('data-block')
-            // Reset to first page and re-render
             currentStudentPage = 1
             renderStudentPage()
         })
     })
 }
-
 
 // Class Filter and Sort
 const classSearchInput = document.getElementById('classSearch')
@@ -1715,8 +1667,7 @@ if (classSortSelect) {
 
 
 
-// ========== SCHOOL-WIDE ATTENDANCE SUMMARY ==========
-// ========== SCHOOL-WIDE ATTENDANCE SUMMARY WITH DONUT CHARTS ==========
+// ========== ATTENDANCE SUMMARY ==========
 
 let attendanceCharts = {}
 
@@ -1725,16 +1676,11 @@ async function loadAttendanceSummary() {
     container.innerHTML = '<div style="text-align: center; padding: 40px;">Loading attendance data...</div>'
     
     try {
-        // Define all programs
         const allPrograms = ['BSIT', 'BSCS', 'BSEMC']
-        
         let summaryHtml = `<div class="donut-grid" id="donutGrid">`
-        
-        // Store chart data to create after HTML is inserted
         const chartsToCreate = []
         
         for (const program of allPrograms) {
-            // Get students in this program
             const { data: students } = await supabase
                 .from('users')
                 .select('id')
@@ -1744,7 +1690,6 @@ async function loadAttendanceSummary() {
             const studentIds = students?.map(s => s.id) || []
             const studentCount = studentIds.length
             
-            // Get classes - include classes with this SPECIFIC program OR NULL (all programs)
             const { data: classes } = await supabase
                 .from('classes')
                 .select('id')
@@ -1801,7 +1746,6 @@ async function loadAttendanceSummary() {
                 continue
             }
             
-            // Get sessions for these classes
             const { data: sessions } = await supabase
                 .from('sessions')
                 .select('id')
@@ -1833,7 +1777,6 @@ async function loadAttendanceSummary() {
                 continue
             }
             
-            // Get attendance records
             const { data: attendances } = await supabase
                 .from('attendances')
                 .select('status')
@@ -1878,14 +1821,12 @@ async function loadAttendanceSummary() {
                 </div>
             `
             
-            // Store data for chart creation
             chartsToCreate.push({ chartId, present, late, absent })
         }
         
         summaryHtml += '</div>'
         container.innerHTML = summaryHtml
         
-        // Create charts after DOM is ready
         setTimeout(() => {
             chartsToCreate.forEach(({ chartId, present, late, absent }) => {
                 createDonutChart(chartId, present, late, absent)
@@ -1898,7 +1839,6 @@ async function loadAttendanceSummary() {
     }
 }
 
-// Create donut chart
 function createDonutChart(canvasId, present, late, absent) {
     const canvas = document.getElementById(canvasId)
     if (!canvas) {
@@ -1950,9 +1890,9 @@ function createDonutChart(canvasId, present, late, absent) {
 }
 
 
+
 // ========== SYSTEM POLICY CONFIGURATION ==========
 
-// Load current policy settings
 async function loadPolicySettings() {
     try {
         const { data, error } = await supabase
@@ -1970,7 +1910,6 @@ async function loadPolicySettings() {
     }
 }
 
-// Save policy settings
 async function savePolicySettings() {
     const lateThreshold = parseInt(document.getElementById('lateThreshold').value)
     const minAttendanceRate = parseInt(document.getElementById('minAttendanceRate').value)
@@ -2005,24 +1944,12 @@ async function savePolicySettings() {
     }
 }
 
-// Event listener
 document.getElementById('savePolicyBtn').addEventListener('click', savePolicySettings)
 
 
 
+// ========== PARSE CSV LINE ==========
 
-
-
-
-
-
-
-
-
-
-
-
-// ========== HELPER: Parse CSV Line ==========
 function parseCSVLine(line) {
     const result = [];
     let inQuotes = false;
@@ -2051,7 +1978,10 @@ function parseCSVLine(line) {
     return cleaned;
 }
 
+
+
 // ========== BULK UPLOAD TEACHERS ==========
+
 document.getElementById('addBulkTeacherBtn')?.addEventListener('click', () => {
     document.getElementById('teacherCsvFile').value = '';
     document.getElementById('bulkUploadPreview').style.display = 'none';
@@ -2082,7 +2012,7 @@ document.getElementById('teacherCsvFile')?.addEventListener('change', (e) => {
             cells.forEach(cell => {
                 let displayCell = cell.replace(/^'/, '');
                 if (displayCell.length > 30) displayCell = displayCell.substring(0, 27) + '...';
-                previewHtml += `<td style="border: 1px solid #ddd; padding: 4px;">${displayCell || '&nbsp;'}<\/td>`;
+                previewHtml += `<td style="border: 1px solid #ddd; padding: 4px;">${displayCell || '&nbsp;'}</td>`;
             });
             previewHtml += '</tr>';
         });
@@ -2107,7 +2037,7 @@ document.getElementById('confirmBulkUploadBtn')?.addEventListener('click', async
         if (lines.length < 2) { showError('CSV must have header row'); return; }
         
         const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase());
-        const expectedHeaders = ['id', 'name', 'email', 'phone', 'password'];
+        const expectedHeaders = ['id', 'first_name', 'last_name', 'email', 'phone', 'password'];
         const missingHeaders = expectedHeaders.filter(h => !headers.includes(h));
         if (missingHeaders.length > 0) { showError(`Missing columns: ${missingHeaders.join(', ')}`); return; }
         
@@ -2123,15 +2053,25 @@ document.getElementById('confirmBulkUploadBtn')?.addEventListener('click', async
                 teacher[header] = value;
             });
             
-            if (!teacher.id || !teacher.name || !teacher.email || !teacher.password) {
+            if (!teacher.id || !teacher.first_name || !teacher.last_name || !teacher.email || !teacher.password) {
                 errors.push(`Row ${i}: Missing required fields`);
                 continue;
             }
             if (isNaN(parseInt(teacher.id))) { errors.push(`Row ${i}: ID must be a number`); continue; }
             
+            const fullName = combineFullName(teacher.first_name, teacher.last_name, teacher.middle_name || '', teacher.suffix || '')
+            
             teachers.push({
-                id: parseInt(teacher.id), name: teacher.name, email: teacher.email,
-                phone: teacher.phone || null, password: teacher.password, role: 'teacher'
+                id: parseInt(teacher.id),
+                first_name: teacher.first_name,
+                middle_name: teacher.middle_name || null,
+                last_name: teacher.last_name,
+                suffix: teacher.suffix || null,
+                name: fullName,
+                email: teacher.email,
+                phone: teacher.phone || null,
+                password: teacher.password,
+                role: 'teacher'
             });
         }
         
@@ -2161,7 +2101,10 @@ document.getElementById('confirmBulkUploadBtn')?.addEventListener('click', async
     reader.readAsText(file);
 });
 
+
+
 // ========== BULK UPLOAD STUDENTS ==========
+
 document.getElementById('addBulkStudentBtn')?.addEventListener('click', () => {
     document.getElementById('studentCsvFile').value = '';
     document.getElementById('bulkStudentPreview').style.display = 'none';
@@ -2188,7 +2131,7 @@ document.getElementById('studentCsvFile')?.addEventListener('change', (e) => {
             cells.forEach(cell => {
                 let displayCell = cell.replace(/^'/, '');
                 if (displayCell.length > 25) displayCell = displayCell.substring(0, 22) + '...';
-                previewHtml += `<td style="border: 1px solid #ddd; padding: 4px;">${displayCell || '&nbsp;'}<\/td>`;
+                previewHtml += `<td style="border: 1px solid #ddd; padding: 4px;">${displayCell || '&nbsp;'}</td>`;
             });
             previewHtml += '</tr>';
         });
@@ -2213,7 +2156,7 @@ document.getElementById('confirmBulkStudentBtn')?.addEventListener('click', asyn
         if (lines.length < 2) { showError('CSV must have header row'); return; }
         
         const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase());
-        const expectedHeaders = ['id', 'name', 'program', 'level', 'block', 'email', 'phone', 'password'];
+        const expectedHeaders = ['id', 'first_name', 'last_name', 'program', 'level', 'block', 'email', 'phone', 'password'];
         const missingHeaders = expectedHeaders.filter(h => !headers.includes(h));
         if (missingHeaders.length > 0) { showError(`Missing columns: ${missingHeaders.join(', ')}`); return; }
         
@@ -2232,7 +2175,7 @@ document.getElementById('confirmBulkStudentBtn')?.addEventListener('click', asyn
                 student[header] = value;
             });
             
-            if (!student.id || !student.name || !student.program || !student.level || !student.block || !student.email || !student.password) {
+            if (!student.id || !student.first_name || !student.last_name || !student.program || !student.level || !student.block || !student.email || !student.password) {
                 errors.push(`Row ${i}: Missing required fields`);
                 continue;
             }
@@ -2241,10 +2184,22 @@ document.getElementById('confirmBulkStudentBtn')?.addEventListener('click', asyn
             if (!validLevels.includes(student.level.toString())) { errors.push(`Row ${i}: Level must be 1-6`); continue; }
             if (!validBlocks.includes(student.block.toUpperCase())) { errors.push(`Row ${i}: Block must be A-D`); continue; }
             
+            const fullName = combineFullName(student.first_name, student.last_name, student.middle_name || '', student.suffix || '')
+            
             students.push({
-                id: parseInt(student.id), name: student.name, program: student.program.toUpperCase(),
-                level: parseInt(student.level), block: student.block.toUpperCase(), email: student.email,
-                phone: student.phone || null, password: student.password, role: 'student',
+                id: parseInt(student.id),
+                first_name: student.first_name,
+                middle_name: student.middle_name || null,
+                last_name: student.last_name,
+                suffix: student.suffix || null,
+                name: fullName,
+                program: student.program.toUpperCase(),
+                level: parseInt(student.level),
+                block: student.block.toUpperCase(),
+                email: student.email,
+                phone: student.phone || null,
+                password: student.password,
+                role: 'student',
                 qr_value: generateQRValue(parseInt(student.id))
             });
         }
@@ -2275,7 +2230,10 @@ document.getElementById('confirmBulkStudentBtn')?.addEventListener('click', asyn
     reader.readAsText(file);
 });
 
+
+
 // ========== BULK UPLOAD CLASSES ==========
+
 document.getElementById('addBulkClassBtn')?.addEventListener('click', () => {
     document.getElementById('classCsvFile').value = '';
     document.getElementById('bulkClassPreview').style.display = 'none';
@@ -2302,7 +2260,7 @@ document.getElementById('classCsvFile')?.addEventListener('change', (e) => {
             cells.forEach(cell => {
                 let displayCell = cell.replace(/^'/, '');
                 if (displayCell.length > 20) displayCell = displayCell.substring(0, 17) + '...';
-                previewHtml += `<td style="border: 1px solid #ddd; padding: 4px;">${displayCell || '&nbsp;'}<\/td>`;
+                previewHtml += `<td style="border: 1px solid #ddd; padding: 4px;">${displayCell || '&nbsp;'}</td>`;
             });
             previewHtml += '</tr>';
         });
@@ -2402,7 +2360,8 @@ document.getElementById('confirmBulkClassBtn')?.addEventListener('click', async 
 
 
 
-// ============ INITIALIZE ============
+// ========== INITIALIZE ==========
+
 async function init() {
     await loadTeachers()
     await loadStudents()

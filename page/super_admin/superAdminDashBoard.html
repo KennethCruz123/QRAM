@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://kit.fontawesome.com/dfcddacee2.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.cdnfonts.com/css/arial" rel="stylesheet">
     
 </head>
 
@@ -410,7 +411,17 @@
 
             <!-- Input Fields -->
             <div class="form-group"><label>User ID</label><input type="text" id="teacherId" placeholder="Enter ID"></div>
-            <div class="form-group"><label>Full Name</label><input type="text" id="teacherName" placeholder="Enter Full Name"></div>
+            
+            <div class="form-group">
+                <label>Full Name</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="teacherFirstName" placeholder="First Name" style="flex: 2;">
+                    <input type="text" id="teacherMiddleName" placeholder="Middle Name" style="flex: 2;">
+                    <input type="text" id="teacherLastName" placeholder="Last Name" style="flex: 2;">
+                    <input type="text" id="teacherSuffix" placeholder="Suffix" style="flex: 1;">
+                </div>
+            </div>
+            
             <div class="form-group"><label>Email</label><input type="email" id="teacherEmail" placeholder="Enter Email Address"></div>
             <div class="form-group"><label>Phone Number</label><input type="tel" id="teacherPhone" placeholder="Enter Phone Number"></div>
             <div class="form-group"><label>Password</label><input type="password" id="teacherPassword" placeholder="••••••"></div>
@@ -436,13 +447,23 @@
 
             <!-- Input Fields -->
             <div class="form-group"><label>Student ID</label><input type="text" id="studentId" placeholder="Enter ID"></div>
-            <div class="form-group"><label>Full Name</label><input type="text" id="studentName" placeholder="Enter Full Name"></div>
+            
+            <div class="form-group">
+                <label>Full Name</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="studentFirstName" placeholder="First Name" style="flex: 2;">
+                    <input type="text" id="studentMiddleName" placeholder="Middle Name" style="flex: 2;">
+                    <input type="text" id="studentLastName" placeholder="Last Name" style="flex: 2;">
+                    <input type="text" id="studentSuffix" placeholder="Suffix" style="flex: 1;">
+                </div>
+            </div>
+            
             <div class="form-group">
                 <label>Program</label>
                 <select id="studentProgram">
                     <option value="">Select Program</option>
                     <option value="BSIT">BSIT</option>
-                    <option value="CCS">CCS</option>
+                    <option value="BSCS">BSCS</option>
                     <option value="BSEMC">BSEMC</option>
                 </select>
             </div>
@@ -598,7 +619,17 @@
 
             <!-- Input Fields -->
             <div class="form-group"><label>User ID</label><input type="text" id="adminId" placeholder="Enter ID"></div>
-            <div class="form-group"><label>Full Name</label><input type="text" id="adminName" placeholder="Enter Full Name"></div>
+            
+            <div class="form-group">
+                <label>Full Name</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="adminFirstName" placeholder="First Name" style="flex: 2;">
+                    <input type="text" id="adminMiddleName" placeholder="Middle Name" style="flex: 2;">
+                    <input type="text" id="adminLastName" placeholder="Last Name" style="flex: 2;">
+                    <input type="text" id="adminSuffix" placeholder="Suffix" style="flex: 1;">
+                </div>
+            </div>
+            
             <div class="form-group"><label>Email</label><input type="email" id="adminEmail" placeholder="Enter Email Address"></div>
             <div class="form-group"><label>Phone Number</label><input type="tel" id="adminPhone" placeholder="Enter Phone Number"></div>
             <div class="form-group"><label>Password</label><input type="password" id="adminPassword" placeholder="••••••"></div>
@@ -747,14 +778,14 @@
                 <p style="margin-bottom: 10px; font-size: 13px;">
                     <strong>CSV Format Required:</strong> First row must be column headers:
                 </p>
-                <pre style="border-radius: 8px; border: 2px solid black;  font-size: 11px;">
-    
-    id,name,email,phone,password
-    2001,Teacher 1,teacher1@gmail.com,09100002001,teacher1password
-    2002,Teacher 2,teacher2@gmail.com,09100002002,teacher2password
+                <pre style="border-radius: 8px; border: 2px solid black; font-size: 11px;">
+
+    id,first_name,middle_name,last_name,suffix,email,phone,password
+    2001,John,,Doe,,teacher1@gmail.com,09100002001,teacher1password
+    2002,Jane,Marie,Smith,Jr.,teacher2@gmail.com,09100002002,teacher2password
                 </pre>
                 <p style="font-size: 12px; margin: 5px 0px;">
-                    <strong>Important:</strong> ID must be unique. Password is required.
+                    <strong>Important:</strong> ID must be unique. Password is required. Middle Name and Suffix are optional.
                 </p>
             </div>
             
@@ -798,14 +829,13 @@
                     <strong>CSV Format Required:</strong> First row must be column headers:
                 </p>
                 <pre style="border-radius: 8px; border: 2px solid black; font-size: 11px;">
-    
-    id,name,program,level,block,email,phone,password
-    3001,Student 1,BSIT,1,A,student1@email.com,09100003001,student1password
-    3002,Student 2,BSCS,2,B,student2@email.com,09100003002,student2password
-    3003,Student 3,BSEMC,3,C,student3@email.com,09100003003,student3password
+
+    id,first_name,middle_name,last_name,suffix,program,level,block,email,phone,password
+    3001,Maria,Isabel,Santos,,BSIT,1,A,student1@email.com,09100003001,student1password
+    3002,Juan,Carlos,Dela Cruz,Jr.,BSCS,2,B,student2@email.com,09100003002,student2password
                 </pre>
                 <p style="font-size: 12px; margin: 5px 0px;">
-                    <strong>Important:</strong> ID must be unique. Program: BSIT, BSCS, BSEMC. Level: 1-6. Block: A, B, C, D.
+                    <strong>Important:</strong> ID must be unique. Program: BSIT, BSCS, BSEMC. Level: 1-6. Block: A, B, C, D. Middle Name and Suffix are optional.
                 </p>
             </div>
             
@@ -896,12 +926,12 @@
                 </p>
                 <pre style="border-radius: 8px; border: 2px solid black; font-size: 11px;">
 
-    id,name,email,phone,password
-    6001,Admin One,admin1@email.com,09100006001,admin1password
-    6002,Admin Two,admin2@email.com,09100006002,admin2password
+    id,first_name,middle_name,last_name,suffix,email,phone,password
+    6001,Admin,One,User,,admin1@email.com,09100006001,admin1password
+    6002,Admin,Two,User,Jr.,admin2@email.com,09100006002,admin2password
                 </pre>
                 <p style="font-size: 12px; margin: 5px 0px;">
-                    <strong>Important:</strong> ID must be unique. Password is required.
+                    <strong>Important:</strong> ID must be unique. Password is required. Middle Name and Suffix are optional.
                 </p>
             </div>
             
@@ -922,19 +952,7 @@
         </div>
     </div>
 
-
-
-
-
-
-
-
-
-
-
-
-        
-
 </body>
-    <script type="module" src="supderAdminDashBoard.js"></script>
+    <script type="module" src="superAdminDashBoard.js"></script>
+    
 </html>
