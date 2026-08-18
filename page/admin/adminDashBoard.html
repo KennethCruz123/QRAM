@@ -633,9 +633,11 @@
                     <strong>CSV Format Required:</strong> First row must be column headers:
                 </p>
                 <pre style="border-radius: 8px; border: 2px solid black; font-size: 11px;">
+
     id,first_name,middle_name,last_name,suffix,email,phone,password
-    2001,John,,Doe,,teacher1@gmail.com,09100002001,teacher1password
-    2002,Jane,Marie,Smith,Jr.,teacher2@gmail.com,09100002002,teacher2password</pre>
+    70000001,John,,Doe,,teacher1@gmail.com,09100002001,teacher1password
+    70000002,Jane,Marie,Smith,Jr.,teacher2@gmail.com,09100002002,teacher2password
+                </pre>
                 <p style="font-size: 12px; margin: 5px 0px;">
                     <strong>Important:</strong> ID must be unique. Password is required. Middle Name and Suffix are optional.
                 </p>
@@ -670,9 +672,11 @@
                     <strong>CSV Format Required:</strong> First row must be column headers:
                 </p>
                 <pre style="border-radius: 8px; border: 2px solid black; font-size: 11px;">
+
     id,first_name,middle_name,last_name,suffix,program,level,block,email,phone,password
-    3001,Maria,Isabel,Santos,,BSIT,1,A,student1@email.com,09100003001,student1password
-    3002,Juan,Carlos,Dela Cruz,Jr.,BSCS,2,B,student2@email.com,09100003002,student2password</pre>
+    1101,Maria,Isabel,Santos,,BSIT,1,A,student1@email.com,09100003001,student1password
+    2102,Juan,Carlos,Dela Cruz,Jr.,BSCS,2,B,student2@email.com,09100003002,student2password
+                </pre>
                 <p style="font-size: 12px; margin: 5px 0px;">
                     <strong>Important:</strong> ID must be unique. Program: BSIT, BSCS, BSEMC. Level: 1-6. Block: A, B, C, D. Middle Name and Suffix are optional.
                 </p>
@@ -705,10 +709,12 @@
                     <strong>CSV Format Required:</strong> First row must be column headers:
                 </p>
                 <pre style="border-radius: 8px; border: 2px solid black; font-size: 10px; overflow-x: auto;">
+
     id,subject,program,teacher_id,blocks,class_room,class_building,class_day,class_time_start,class_time_end,class_level,class_color
-    50001,Appdev,BSIT,1001,"A,B",101,Main,"M,W,F",08:00,10:00,1,blue
-    50002,Ethics,BSCS,1002,"A,B,C",102,Annex,"T,Th",10:30,12:30,2,green
-    50003,Networking,BSEMC,1003,"A",103,Main,"M,W",13:00,15:00,3,orange</pre>
+    50001,Appdev,BSIT,70000001,"A,B",101,Main,"M,W,F",08:00,10:00,1,blue
+    50002,Ethics,BSCS,70000002,"A,B,C",102,Annex,"T,Th",10:30,12:30,2,green
+    50003,Networking,BSEMC,70000003,"A",103,Main,"M,W",13:00,15:00,3,orange
+                </pre>
                 <p style="font-size: 12px; margin: 5px 0px;">
                     <strong>Important:</strong> 
                     blocks: use quotes like "A,B,C" | days: "M,T,W,Th,F,S" | program: BSIT, BSCS, BSEMC, or leave empty for all programs                  
