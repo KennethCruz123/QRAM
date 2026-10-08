@@ -238,21 +238,20 @@
             <div class="program-filter-bar">
                 <span class="program-filter-label">Filter by Program:</span>
                 <button class="program-filter-btn active" data-program="all">All</button>
-                <button class="program-filter-btn" data-program="BSIT">BSIT</button>
-                <button class="program-filter-btn" data-program="BSCS">BSCS</button>
-                <button class="program-filter-btn" data-program="BSEMC">BSEMC</button>
+                <button class="program-filter-btn" data-program="STEM">STEM</button>
+                <button class="program-filter-btn" data-program="ICT">ICT</button>
+                <button class="program-filter-btn" data-program="GAS">GAS</button>
+                <button class="program-filter-btn" data-program="ABM">ABM</button>
+                <button class="program-filter-btn" data-program="HUMSS">HUMSS</button>
+                <button class="program-filter-btn" data-program="TVL">TVL</button>
             </div>
 
             <!-- Level Filter Buttons-->
             <div class="level-filter-bar">
                 <span class="level-filter-label">Filter by Level:</span>
                 <button class="level-filter-btn active" data-level="all">All</button>
-                <button class="level-filter-btn" data-level="1">1</button>
-                <button class="level-filter-btn" data-level="2">2</button>
-                <button class="level-filter-btn" data-level="3">3</button>
-                <button class="level-filter-btn" data-level="4">4</button>
-                <!-- <button class="level-filter-btn" data-level="5">5</button>
-                <button class="level-filter-btn" data-level="6">6</button> -->
+                <button class="level-filter-btn" data-level="11">11</button>
+                <button class="level-filter-btn" data-level="12">12</button>
             </div>
 
             <!-- Block Filter Buttons-->
@@ -462,21 +461,20 @@
                 <label>Program</label>
                 <select id="studentProgram">
                     <option value="">Select Program</option>
-                    <option value="BSIT">BSIT</option>
-                    <option value="BSCS">BSCS</option>
-                    <option value="BSEMC">BSEMC</option>
+                    <option value="STEM">STEM</option>
+                    <option value="ICT">ICT</option>
+                    <option value="GAS">GAS</option>
+                    <option value="ABM">ABM</option>
+                    <option value="HUMSS">HUMSS</option>
+                    <option value="TVL">TVL</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Level</label>
                 <select id="studentLevel">
                     <option value="">Select Level</option>
-                    <option value="1">Level 1</option>
-                    <option value="2">Level 2</option>
-                    <option value="3">Level 3</option>
-                    <option value="4">Level 4</option>
-                    <!-- <option value="5">Level 5</option>
-                    <option value="6">Level 6</option> -->
+                    <option value="11">Grade 11</option>
+                    <option value="12">Grade 12</option>
                 </select>
             </div>
             <div class="form-group"><label>Block</label>
@@ -519,10 +517,24 @@
                 <label>Program</label>
                 <select id="classProgram">
                     <option value="">Open to All Programs</option>
-                    <option value="BSIT">BSIT</option>
-                    <option value="BSCS">BSCS</option>
-                    <option value="BSEMC">BSEMC</option>
+                    <option value="STEM">STEM</option>
+                    <option value="ICT">ICT</option>
+                    <option value="GAS">GAS</option>
+                    <option value="ABM">ABM</option>
+                    <option value="HUMSS">HUMSS</option>
+                    <option value="TVL">TVL</option>
                 </select>
+            </div>
+            <div class="form-group">
+                <label>Class Level</label>
+                <div style="display: flex; gap: 20px; margin-top: 5px;">
+                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
+                        <input type="radio" name="classLevel" value="11"> 11
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
+                        <input type="radio" name="classLevel" value="12"> 12
+                    </label>
+                </div>
             </div>
 
             <div class="form-group">
@@ -560,29 +572,6 @@
             </div>
             <div class="form-group"><label>Start Time</label><input type="time" id="classStartTime" step="60"></div>
             <div class="form-group"><label>End Time</label><input type="time" id="classEndTime" step="60"></div>
-            <div class="form-group">
-                <label>Class Level</label>
-                <div style="display: flex; gap: 20px; margin-top: 5px;">
-                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
-                        <input type="radio" name="classLevel" value="1"> 1
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
-                        <input type="radio" name="classLevel" value="2"> 2
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
-                        <input type="radio" name="classLevel" value="3"> 3
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
-                        <input type="radio" name="classLevel" value="4"> 4
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
-                        <input type="radio" name="classLevel" value="5"> 5
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
-                        <input type="radio" name="classLevel" value="6"> 6
-                    </label>
-                </div>
-            </div>
             <div class="form-group">
                 <label>Color</label>
                 <select id="classColor">
@@ -690,12 +679,8 @@
             <div class="modal-filter-group">
                 <span class="modal-filter-label">Filter by Level:</span>
                 <div class="level-checkboxes" style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <label><input type="checkbox" class="level-filter-checkbox" value="1"><span>1</span></label>
-                    <label><input type="checkbox" class="level-filter-checkbox" value="2"><span>2</span></label>
-                    <label><input type="checkbox" class="level-filter-checkbox" value="3"><span>3</span></label>
-                    <label><input type="checkbox" class="level-filter-checkbox" value="4"><span>4</span></label>
-                    <!-- <label><input type="checkbox" class="level-filter-checkbox" value="5"><span>5</span></label>
-                    <label><input type="checkbox" class="level-filter-checkbox" value="6"><span>6</span></label> -->
+                    <label><input type="checkbox" class="level-filter-checkbox" value="11"><span>11</span></label>
+                    <label><input type="checkbox" class="level-filter-checkbox" value="12"><span>12</span></label>
                 </div>
             </div>
 
@@ -831,11 +816,11 @@
                 <pre style="border-radius: 8px; border: 2px solid black; font-size: 11px;">
 
     id,first_name,middle_name,last_name,suffix,program,level,block,email,phone,password
-    1101,Maria,Isabel,Santos,,BSIT,1,A,student1@email.com,09100003001,student1password
-    2102,Juan,Carlos,Dela Cruz,Jr.,BSCS,2,B,student2@email.com,09100003002,student2password
+    1101,Maria,Isabel,Santos,,STEM,11,A,student1@email.com,09100003001,student1password
+    1102,Juan,Carlos,Dela Cruz,Jr.,ICT,12,B,student2@email.com,09100003002,student2password
                 </pre>
                 <p style="font-size: 12px; margin: 5px 0px;">
-                    <strong>Important:</strong> ID must be unique. Program: BSIT, BSCS, BSEMC. Level: 1-6. Block: A, B, C, D. Middle Name and Suffix are optional.
+                    <strong>Important:</strong> ID must be unique. Program: STEM, ICT, etc... Level: 11-12. Block: A, B, C, D. Middle Name and Suffix are optional.
                 </p>
             </div>
             
@@ -879,13 +864,13 @@
                 <pre style="border-radius: 8px; border: 2px solid black; font-size: 11px;">
 
     id,subject,program,teacher_id,blocks,class_room,class_building,class_day,class_time_start,class_time_end,class_level,class_color
-    50001,Appdev,BSIT,70000001,"A,B",101,Main,"M,W,F",08:00,10:00,1,blue
-    50002,Ethics,BSCS,70000002,"A,B,C",102,Annex,"T,Th",10:30,12:30,2,green
-    50003,Networking,BSEMC,70000003,"A",103,Main,"M,W",13:00,15:00,3,orange
+    50001,Appdev,STEM,70000001,"A,B",101,Main,"M,W,F",08:00,10:00,11,blue
+    50002,Ethics,ICT,70000002,"A,B,C",102,Annex,"T,Th",10:30,12:30,12,green
+    50003,Networking,GAS,70000003,"A",103,Main,"M,W",13:00,15:00,11,orange
                 </pre>
                 <p style="font-size: 12px; margin: 5px 0px;">
                     <strong>Important:</strong> 
-                    blocks: use quotes like "A,B,C" | days: "M,T,W,Th,F,S" | program: BSIT, BSCS, BSEMC, or leave empty for all programs                  
+                    blocks: use quotes like "A,B,C" | days: "M,T,W,Th,F,S" | program: STEM, ICT, etc..., or leave empty for all programs                  
                 </p>
             </div>
             

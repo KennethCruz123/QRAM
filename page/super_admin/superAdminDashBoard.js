@@ -1780,9 +1780,7 @@ window.viewClassStudents = async (classId, className) => {
         }
         
         let programDisplay = 'All Programs (Open)'
-        if (classData.program === 'BSIT') programDisplay = 'BSIT'
-        else if (classData.program === 'BSCS') programDisplay = 'BSCS'
-        else if (classData.program === 'BSEMC') programDisplay = 'BSEMC'
+        if (classData.program) programDisplay = classData.program
         
         document.getElementById('viewClassName').textContent = classData.subject || 'N/A'
         document.getElementById('viewClassProgram').textContent = programDisplay
@@ -2099,7 +2097,7 @@ async function loadAttendanceSummary() {
     container.innerHTML = '<div style="text-align: center; padding: 40px;">Loading attendance data...</div>'
     
     try {
-        const allPrograms = ['BSIT', 'BSCS', 'BSEMC']
+        const allPrograms = ['STEM', 'ICT', 'GAS', 'ABM', 'HUMSS', 'TVL']
         let summaryHtml = `<div class="donut-grid" id="donutGrid">`
         const chartsToCreate = []
         
@@ -2577,8 +2575,8 @@ document.getElementById('confirmBulkStudentBtn')?.addEventListener('click', asyn
         
         const students = [];
         const errors = [];
-        const validPrograms = ['BSIT', 'BSCS', 'BSEMC'];
-        const validLevels = ['1','2','3','4','5','6'];
+        const validPrograms = ['STEM', 'ICT', 'GAS', 'ABM', 'HUMSS', 'TVL'];
+        const validLevels = ['11', '12'];
         const validBlocks = ['A','B','C','D'];
         
         for (let i = 1; i < lines.length; i++) {
@@ -2596,7 +2594,7 @@ document.getElementById('confirmBulkStudentBtn')?.addEventListener('click', asyn
             }
             if (isNaN(parseInt(student.id))) { errors.push(`Row ${i}: ID must be a number`); continue; }
             if (!validPrograms.includes(student.program.toUpperCase())) { errors.push(`Row ${i}: Invalid program`); continue; }
-            if (!validLevels.includes(student.level.toString())) { errors.push(`Row ${i}: Level must be 1-6`); continue; }
+            if (!validLevels.includes(student.level.toString())) { errors.push(`Row ${i}: Level must be 11 or 12`); continue; }
             if (!validBlocks.includes(student.block.toUpperCase())) { errors.push(`Row ${i}: Block must be A-D`); continue; }
             
             const fullName = combineFullName(student.first_name, student.last_name, student.middle_name || '', student.suffix || '')
@@ -2707,7 +2705,7 @@ document.getElementById('confirmBulkClassBtn')?.addEventListener('click', async 
         
         const classes = [];
         const errors = [];
-        const validPrograms = ['BSIT', 'BSCS', 'BSEMC', ''];
+        const validPrograms = ['STEM', 'ICT', 'GAS', 'ABM', 'HUMSS', 'TVL', ''];
         const validBuildings = ['Main', 'Annex'];
         const validDays = ['M', 'T', 'W', 'Th', 'F', 'S'];
         
@@ -2734,7 +2732,7 @@ document.getElementById('confirmBulkClassBtn')?.addEventListener('click', async 
             if (invalidDays.length > 0) { errors.push(`Row ${i}: Invalid days: ${invalidDays.join(',')}`); continue; }
             
             let level = classItem.class_level ? parseInt(classItem.class_level) : null;
-            if (level && (level < 1 || level > 6)) { errors.push(`Row ${i}: Level must be 1-6`); continue; }
+            if (level && level !== 11 && level !== 12) { errors.push(`Row ${i}: Level must be 11 or 12`); continue; }
             
             classes.push({
                 id: parseInt(classItem.id), subject: classItem.subject, program: classItem.program || null,
