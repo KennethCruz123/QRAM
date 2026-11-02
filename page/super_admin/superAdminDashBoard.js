@@ -5,13 +5,25 @@ const supabaseUrl = 'https://bkxtmevrfpfhwrwildpx.supabase.co'
 const supabaseAnonKey = 'sb_publishable_zkt89flZIVC5aEtgR7eOLQ_y20L9oGY'
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
+// ========== PROGRAM & SECTION CONFIGURATION ==========
+const PROGRAM_SECTIONS = {
+    'ICT': ['Banatao', 'TAN'],
+    'PROG2': ['PROG2-SEC1', 'PROG2-SEC2'],
+    'PROG3': ['PROG3-SEC1', 'PROG3-SEC2'],
+    'PROG4': ['PROG4-SEC1', 'PROG4-SEC2'],
+    'PROG5': ['PROG5-SEC1', 'PROG5-SEC2'],
+    'PROG6': ['PROG6-SEC1', 'PROG6-SEC2']
+}
+
+const ALL_PROGRAMS = Object.keys(PROGRAM_SECTIONS)
+
 const userRole = sessionStorage.getItem('userRole')
 if (!userRole || userRole !== 'super_admin') {
     alert('Access denied. Super Admin only.')
     window.location.href = '/page/login/login.html'
 }
 
-// Audit log function
+// ========== AUDIT LOG FUNCTION ==========
 async function logAction(action, details) {
     try {
         const userId = sessionStorage.getItem('userId')
@@ -32,7 +44,7 @@ async function logAction(action, details) {
     }
 }
 
-// Show Message (Success, Error, Info)
+// ========== SHOW MESSAGE ==========
 function showMessage(message, type = 'info') {
     const existingMsg = document.querySelector('.floating-message')
     if (existingMsg) existingMsg.remove()
@@ -143,7 +155,7 @@ let teacherSortBy = 'id_asc'
 
 let studentSearchTerm = ''
 let studentSortBy = 'id_asc'
-let studentBlockFilter = 'all'
+let studentSectionFilter = 'all'
 let studentLevelFilter = 'all'
 let studentProgramFilter = 'all'
 
@@ -156,7 +168,7 @@ let adminSortBy = 'id_asc'
 let modalStudentsList = []
 let modalEnrolledIds = []
 let modalSelectedLevels = []    
-let modalSelectedBlocks = []     
+let modalSelectedSections = []     
 
 let currentTeacherPage = 1
 let currentStudentPage = 1
@@ -220,7 +232,94 @@ function formatDisplayName(firstName, lastName, middleName = '', suffix = '') {
     return parts.join(' ').trim() || 'N/A'
 }
 
-// Displays and Filters the Student List Inside the "Add Student to Class"
+// ========== DYNAMIC SECTION FUNCTIONS ==========
+
+// Update student section dropdown based on selected program
+window.updateStudentSectionDropdown = () => {
+    const program = document.getElementById('studentProgram').value
+    const sectionSelect = document.getElementById('studentSection')
+    
+    sectionSelect.innerHTML = ''
+    
+    if (!program) {
+        sectionSelect.disabled = true
+        sectionSelect.innerHTML = '<option value="">Select Program First</option>'
+        return
+    }
+    
+    sectionSelect.disabled = false
+    sectionSelect.innerHTML = '<option value="">Select Section</option>'
+    
+    PROGRAM_SECTIONS[program].forEach(section => {
+        sectionSelect.innerHTML += `<option value="${section}">${section}</option>`
+    })
+}
+
+// Update class section checkboxes based on selected program
+window.updateClassSectionCheckboxes = () => {
+    const program = document.getElementById('classProgram').value
+    const container = document.getElementById('classSectionsContainer')
+    
+    container.innerHTML = ''
+    
+    if (!program) {
+        container.innerHTML = '<p style="color: #999; font-size: 12px;">Select a program first</p>'
+        return
+    }
+    
+    PROGRAM_SECTIONS[program].forEach(section => {
+        container.innerHTML += `<label><input type="checkbox" value="${section}"> ${section}</label>`
+    })
+}
+
+// Update section filter buttons dynamically
+function updateSectionFilterButtons() {
+    const container = document.querySelector('.section-filter-bar')
+    const existingBtns = container.querySelectorAll('.section-filter-btn')
+    
+    // Keep only "All" button
+    existingBtns.forEach(btn => {
+        if (btn.dataset.section !== 'all') btn.remove()
+    })
+    
+    // Reset active
+    container.querySelector('[data-section="all"]').classList.add('active')
+    
+    // If program is 'all', we only show the 'All' button. No specific sections.
+    if (studentProgramFilter === 'all') {
+        return; 
+    }
+    
+    // Show only sections for the selected program
+    PROGRAM_SECTIONS[studentProgramFilter].forEach(section => {
+        const btn = document.createElement('button')
+        btn.className = 'section-filter-btn'
+        btn.dataset.section = section
+        btn.textContent = section
+        btn.addEventListener('click', handleSectionFilterClick)
+        container.appendChild(btn)
+    })
+}
+
+// Handle section filter button click
+function handleSectionFilterClick(e) {
+    const sectionBtns = document.querySelectorAll('.section-filter-btn')
+    sectionBtns.forEach(b => b.classList.remove('active'))
+    e.target.classList.add('active')
+    studentSectionFilter = e.target.dataset.section
+    currentStudentPage = 1
+    renderStudentPage()
+}
+
+// Attach event to "All" section filter button
+document.addEventListener('DOMContentLoaded', () => {
+    const allSectionBtn = document.querySelector('.section-filter-btn[data-section="all"]')
+    if (allSectionBtn) {
+        allSectionBtn.addEventListener('click', handleSectionFilterClick)
+    }
+})
+
+// ========== RENDER MODAL STUDENT LIST ==========
 function renderModalStudentList() {
     let filteredStudents = [...modalStudentsList]
     
@@ -230,9 +329,9 @@ function renderModalStudentList() {
         )
     }
     
-    if (modalSelectedBlocks.length > 0) {
+    if (modalSelectedSections.length > 0) {
         filteredStudents = filteredStudents.filter(student => 
-            modalSelectedBlocks.includes(student.block)
+            modalSelectedSections.includes(student.section)
         )
     }
     
@@ -297,7 +396,9 @@ function resetStudentForm() {
     document.getElementById('studentSuffix').value = '';
     document.getElementById('studentProgram').value = '';
     document.getElementById('studentLevel').value = '';
-    document.getElementById('studentBlock').value = '';
+    document.getElementById('studentSection').value = '';
+    document.getElementById('studentSection').disabled = true;
+    document.getElementById('studentSection').innerHTML = '<option value="">Select Program First</option>';
     document.getElementById('studentEmail').value = '';
     document.getElementById('studentPhone').value = '';
     document.getElementById('studentPassword').value = '';
@@ -309,13 +410,13 @@ function resetClassForm() {
     document.getElementById('classCode').value = '';
     document.getElementById('classSubject').value = '';
     document.getElementById('classProgram').value = ''; 
-    document.querySelectorAll('.blocks-checkbox input').forEach(cb => cb.checked = false);
+    document.getElementById('classSectionsContainer').innerHTML = '<p style="color: #999; font-size: 12px;">Select a program first</p>';
     document.getElementById('classRoom').value = '';
     document.getElementById('classStartTime').value = '';
     document.getElementById('classEndTime').value = '';
     document.querySelectorAll('input[name="classLevel"]').forEach(radio => radio.checked = false);
     document.getElementById('classColor').value = 'orangered';
-    document.querySelector('input[name="classBuilding"][value="Main"]').checked = true;
+    document.querySelector('input[name="classBuilding"][value="B1"]').checked = true;
     document.querySelectorAll('.days-checkbox input').forEach(cb => cb.checked = false);
     currentEditClassId = null;
 }
@@ -385,9 +486,9 @@ function getFilteredAndSortedStudents() {
         )
     }
     
-    if (studentBlockFilter !== 'all') {
+    if (studentSectionFilter !== 'all') {
         filteredStudents = filteredStudents.filter(student => 
-            student.block === studentBlockFilter
+            student.section === studentSectionFilter
         )
     }
     
@@ -399,6 +500,7 @@ function getFilteredAndSortedStudents() {
             (student.last_name && student.last_name.toLowerCase().includes(searchLower)) ||
             (student.name && student.name.toLowerCase().includes(searchLower)) ||
             (student.level && student.level.toString().includes(searchLower)) || 
+            (student.section && student.section.toLowerCase().includes(searchLower)) ||
             (student.email && student.email.toLowerCase().includes(searchLower))
         )
     }
@@ -716,7 +818,7 @@ function renderStudentPage() {
                 <td>${displayName}</td>
                 <td>${student.program || 'N/A'}</td>
                 <td>${student.level || 'N/A'}</td>
-                <td>${student.block || 'N/A'}</td>
+                <td>${student.section || 'N/A'}</td>
                 <td>${student.email || 'N/A'}</td>
                 <td>${student.phone || 'N/A'}</td>
                 <td class="action-buttons">
@@ -803,7 +905,7 @@ async function loadClasses() {
             ...classItem,
             teacherName: teacherName,
             studentCount: studentCounts[classItem.id] || 0,
-            blocksDisplay: classItem.blocks ? classItem.blocks.join(', ') : 'N/A',
+            sectionsDisplay: classItem.sections ? classItem.sections.join(', ') : 'N/A',
             programDisplay: classItem.program || 'All Programs'
         }
     })
@@ -840,7 +942,7 @@ function renderClassPage() {
                 <td>${classItem.subject || 'N/A'}</td>
                 <td>${classItem.programDisplay}</td> 
                 <td>${classItem.class_level || 'N/A'}</td>
-                <td>${classItem.blocksDisplay}</td>
+                <td>${classItem.sectionsDisplay}</td>
                 <td>${classItem.teacherName}</td>
                 <td>${classItem.studentCount} students</td>
                 <td class="action-buttons">
@@ -976,7 +1078,6 @@ function renderAdminPage() {
 
 // ========== TEACHER CRUD ==========
 
-// Open teacher modal in "Add" mode
 document.getElementById('addTeacherBtn').onclick = () => {
     currentEditTeacherId = null;
     document.getElementById('teacherModalTitle').textContent = 'Add Teacher';
@@ -994,7 +1095,6 @@ document.getElementById('addTeacherBtn').onclick = () => {
     showModal('teacherModal');
 }
 
-// Open teacher modal in "Edit" mode
 window.editTeacher = async (id) => {
     currentEditTeacherId = id;
 
@@ -1021,7 +1121,6 @@ window.editTeacher = async (id) => {
     }
 }
 
-// Delete Teacher
 window.deleteTeacher = async (id, name) => {
     showConfirm('Delete Teacher', name, async () => {
         await supabase.from('users').delete().eq('id', id)
@@ -1032,7 +1131,6 @@ window.deleteTeacher = async (id, name) => {
     })
 }
 
-// Save Teacher
 document.getElementById('saveTeacherBtn').onclick = async () => {
     const teacherId = parseInt(document.getElementById('teacherId').value)
     const firstName = document.getElementById('teacherFirstName').value.trim()
@@ -1121,7 +1219,6 @@ document.getElementById('saveTeacherBtn').onclick = async () => {
 
 // ========== STUDENT CRUD ==========
 
-// Open Student modal in "Add" mode
 document.getElementById('addStudentBtn').onclick = () => {
     currentEditStudentId = null;
     document.getElementById('studentModalTitle').textContent = 'Add Student';
@@ -1134,7 +1231,9 @@ document.getElementById('addStudentBtn').onclick = () => {
     document.getElementById('studentSuffix').value = '';
     document.getElementById('studentProgram').value = '';
     document.getElementById('studentLevel').value = '';
-    document.getElementById('studentBlock').value = '';
+    document.getElementById('studentSection').value = '';
+    document.getElementById('studentSection').disabled = true;
+    document.getElementById('studentSection').innerHTML = '<option value="">Select Program First</option>';
     document.getElementById('studentEmail').value = '';
     document.getElementById('studentPhone').value = '';
     document.getElementById('studentPassword').value = '';
@@ -1142,7 +1241,6 @@ document.getElementById('addStudentBtn').onclick = () => {
     showModal('studentModal');
 }
 
-// Open Student modal in "Edit" mode
 window.editStudent = async (id) => {
     currentEditStudentId = id;
 
@@ -1162,8 +1260,24 @@ window.editStudent = async (id) => {
         document.getElementById('studentLastName').value = data.last_name || '';
         document.getElementById('studentSuffix').value = data.suffix || '';
         document.getElementById('studentProgram').value = data.program || '';
+        
+        // Update section dropdown based on program
+        const sectionSelect = document.getElementById('studentSection')
+        sectionSelect.innerHTML = ''
+        
+        if (data.program && PROGRAM_SECTIONS[data.program]) {
+            sectionSelect.disabled = false
+            sectionSelect.innerHTML = '<option value="">Select Section</option>'
+            PROGRAM_SECTIONS[data.program].forEach(section => {
+                sectionSelect.innerHTML += `<option value="${section}">${section}</option>`
+            })
+            sectionSelect.value = data.section || ''
+        } else {
+            sectionSelect.disabled = true
+            sectionSelect.innerHTML = '<option value="">Select Program First</option>'
+        }
+        
         document.getElementById('studentLevel').value = data.level || ''; 
-        document.getElementById('studentBlock').value = data.block || '';
         document.getElementById('studentEmail').value = data.email || '';
         document.getElementById('studentPhone').value = data.phone || '';
         document.getElementById('studentPassword').value = '';
@@ -1172,7 +1286,6 @@ window.editStudent = async (id) => {
     }
 }
 
-// Delete Student
 window.deleteStudent = async (id, name) => {
     showConfirm('Delete Student', name, async () => {
         await supabase.from('users').delete().eq('id', id)
@@ -1183,7 +1296,6 @@ window.deleteStudent = async (id, name) => {
     })
 }
 
-// Save Student
 document.getElementById('saveStudentBtn').onclick = async () => {
     const studentId = parseInt(document.getElementById('studentId').value)
     const firstName = document.getElementById('studentFirstName').value.trim()
@@ -1195,10 +1307,20 @@ document.getElementById('saveStudentBtn').onclick = async () => {
     const password = document.getElementById('studentPassword').value
     const program = document.getElementById('studentProgram')?.value || null
     const level = document.getElementById('studentLevel')?.value || null
-    const block = document.getElementById('studentBlock')?.value || null
+    const section = document.getElementById('studentSection')?.value || null
     
     if (!studentId || !firstName || !lastName || !email) {
         showError('Please fill all required fields (ID, First Name, Last Name, Email)')
+        return
+    }
+    
+    if (!program) {
+        showError('Please select a program')
+        return
+    }
+    
+    if (!section) {
+        showError('Please select a section')
         return
     }
     
@@ -1235,7 +1357,7 @@ document.getElementById('saveStudentBtn').onclick = async () => {
             program: program,
             level: level,
             role: 'student',
-            block: block,
+            section: section,
             qr_value: qrValue
         })
         
@@ -1260,7 +1382,7 @@ document.getElementById('saveStudentBtn').onclick = async () => {
             role: 'student',
             program: program,
             level: level,
-            block: block
+            section: section
         }
         
         if (password && password.trim() !== '') updateData.password = password
@@ -1282,7 +1404,6 @@ document.getElementById('saveStudentBtn').onclick = async () => {
 
 // ========== CLASS CRUD ==========
 
-// Open Class modal in "Add" mode
 document.getElementById('addClassBtn').onclick = async () => {
     resetClassForm()
     document.getElementById('classModalTitle').textContent = 'Add Class'
@@ -1310,7 +1431,6 @@ document.getElementById('addClassBtn').onclick = async () => {
     showModal('classModal')
 }
 
-// Open Class modal in "Edit" mode
 window.editClass = async (id) => {
     currentEditClassId = id;
 
@@ -1336,12 +1456,21 @@ window.editClass = async (id) => {
         }
         document.getElementById('classColor').value = classData.class_color || 'white';
         
-        const blocks = classData.blocks || [];
-        document.querySelectorAll('.blocks-checkbox input').forEach(cb => {
-            cb.checked = blocks.includes(cb.value);
-        });
+        // Update section checkboxes based on program
+        const sectionsContainer = document.getElementById('classSectionsContainer')
+        sectionsContainer.innerHTML = ''
         
-        const building = classData.class_building || 'Main';
+        if (classData.program && PROGRAM_SECTIONS[classData.program]) {
+            const classSections = classData.sections || []
+            PROGRAM_SECTIONS[classData.program].forEach(section => {
+                const checked = classSections.includes(section) ? 'checked' : ''
+                sectionsContainer.innerHTML += `<label><input type="checkbox" value="${section}" ${checked}> ${section}</label>`
+            })
+        } else {
+            sectionsContainer.innerHTML = '<p style="color: #999; font-size: 12px;">Select a program first</p>'
+        }
+        
+        const building = classData.class_building || 'B1';
         const buildingRadio = document.querySelector(`input[name="classBuilding"][value="${building}"]`);
         if (buildingRadio) buildingRadio.checked = true;
         
@@ -1374,7 +1503,6 @@ window.editClass = async (id) => {
     }
 };
 
-// Delete Class
 window.deleteClass = async (id, subject) => {
     showConfirm('Delete Class', subject, async () => {
         await supabase.from('classes').delete().eq('id', id)
@@ -1385,14 +1513,13 @@ window.deleteClass = async (id, subject) => {
     })
 }
 
-// Save Class
 document.getElementById('saveClassBtn').onclick = async () => {
     const classCode = parseInt(document.getElementById('classCode').value)
     const subject = document.getElementById('classSubject').value.trim()
     const program = document.getElementById('classProgram').value || null;
     const teacherId = parseInt(document.getElementById('classTeacherSelect').value)
     const room = parseInt(document.getElementById('classRoom').value)
-    const building = document.querySelector('input[name="classBuilding"]:checked')?.value || 'Main'
+    const building = document.querySelector('input[name="classBuilding"]:checked')?.value || 'B1'
     const startTime = document.getElementById('classStartTime').value
     const endTime = document.getElementById('classEndTime').value
     const selectedLevel = document.querySelector('input[name="classLevel"]:checked');
@@ -1402,13 +1529,23 @@ document.getElementById('saveClassBtn').onclick = async () => {
     const days = []
     document.querySelectorAll('.days-checkbox input:checked').forEach(cb => days.push(cb.value))
     
-    const blocks = []
-    document.querySelectorAll('.blocks-checkbox input:checked').forEach(cb => {
-        blocks.push(cb.value)
+    const sections = []
+    document.querySelectorAll('#classSectionsContainer input:checked').forEach(cb => {
+        sections.push(cb.value)
     })
     
     if (!classCode || !subject || !teacherId || !room || !startTime || !endTime || days.length === 0) {
         showError('Please fill all fields')
+        return
+    }
+    
+    if (!program) {
+        showError('Please select a program')
+        return
+    }
+    
+    if (sections.length === 0) {
+        showError('Please select at least one section')
         return
     }
     
@@ -1428,7 +1565,7 @@ document.getElementById('saveClassBtn').onclick = async () => {
         subject: subject,
         program: program, 
         teacher_id: teacherId,
-        blocks: blocks,
+        sections: sections,
         class_room: room,
         class_building: building,
         class_day: days,
@@ -1453,7 +1590,6 @@ document.getElementById('saveClassBtn').onclick = async () => {
 
 // ========== ADMIN CRUD ==========
 
-// Open Admin modal in "Add" mode
 document.getElementById('addAdminBtn').onclick = () => {
     currentEditAdminId = null;
     document.getElementById('adminModalTitle').textContent = 'Add Admin';
@@ -1471,7 +1607,6 @@ document.getElementById('addAdminBtn').onclick = () => {
     showModal('adminModal');
 }
 
-// Open Admin modal in "Edit" mode
 window.editAdmin = async (id) => {
     currentEditAdminId = id;
 
@@ -1498,7 +1633,6 @@ window.editAdmin = async (id) => {
     }
 }
 
-// Delete Admin
 window.deleteAdmin = async (id, name) => {
     showConfirm('Delete Admin', name, async () => {
         await supabase.from('users').delete().eq('id', id)
@@ -1509,7 +1643,6 @@ window.deleteAdmin = async (id, name) => {
     })
 }
 
-// Save Admin
 document.getElementById('saveAdminBtn').onclick = async () => {
     const adminId = parseInt(document.getElementById('adminId').value)
     const firstName = document.getElementById('adminFirstName').value.trim()
@@ -1662,9 +1795,24 @@ window.addStudentToClass = async (classId, className) => {
     
     const classProgram = classData?.program || null
     
+    // Populate section checkboxes based on class program
+    const sectionCheckboxesContainer = document.getElementById('modalSectionCheckboxes')
+    sectionCheckboxesContainer.innerHTML = ''
+    
+    if (classProgram && PROGRAM_SECTIONS[classProgram]) {
+        PROGRAM_SECTIONS[classProgram].forEach(section => {
+            sectionCheckboxesContainer.innerHTML += `
+                <label>
+                    <input type="checkbox" class="section-filter-checkbox" value="${section}">
+                    <span>${section}</span>
+                </label>
+            `
+        })
+    }
+    
     let query = supabase
         .from('users')
-        .select('id, name, first_name, last_name, middle_name, suffix, block, level, program')
+        .select('id, name, first_name, last_name, middle_name, suffix, section, level, program')
         .eq('role', 'student')
         .order('id')
     
@@ -1682,7 +1830,7 @@ window.addStudentToClass = async (classId, className) => {
     modalEnrolledIds = enrolled?.map(e => e.student_id) || []
     pendingSelectedStudentIds = [...modalEnrolledIds]
     modalSelectedLevels = []
-    modalSelectedBlocks = []
+    modalSelectedSections = []
     
     document.querySelectorAll('.level-filter-checkbox').forEach(cb => {
         cb.checked = false
@@ -1695,12 +1843,12 @@ window.addStudentToClass = async (classId, className) => {
         }
     })
     
-    document.querySelectorAll('.block-filter-checkbox').forEach(cb => {
+    document.querySelectorAll('.section-filter-checkbox').forEach(cb => {
         cb.checked = false
         cb.onchange = () => {
-            modalSelectedBlocks = []
-            document.querySelectorAll('.block-filter-checkbox:checked').forEach(checked => {
-                modalSelectedBlocks.push(checked.value)
+            modalSelectedSections = []
+            document.querySelectorAll('.section-filter-checkbox:checked').forEach(checked => {
+                modalSelectedSections.push(checked.value)
             })
             renderModalStudentList()
         }
@@ -2017,6 +2165,9 @@ if (programFilterBtns.length > 0) {
             btn.classList.add('active')
             studentProgramFilter = btn.getAttribute('data-program')
             currentStudentPage = 1
+            // Reset section filter when program changes
+            studentSectionFilter = 'all'
+            updateSectionFilterButtons()
             renderStudentPage()
         })
     })
@@ -2030,20 +2181,6 @@ if (levelFilterBtns.length > 0) {
             levelFilterBtns.forEach(b => b.classList.remove('active'))
             btn.classList.add('active')
             studentLevelFilter = btn.getAttribute('data-level')
-            currentStudentPage = 1
-            renderStudentPage()
-        })
-    })
-}
-
-// Block Filter Buttons
-const blockFilterBtns = document.querySelectorAll('.block-filter-btn')
-if (blockFilterBtns.length > 0) {
-    blockFilterBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            blockFilterBtns.forEach(b => b.classList.remove('active'))
-            btn.classList.add('active')
-            studentBlockFilter = btn.getAttribute('data-block')
             currentStudentPage = 1
             renderStudentPage()
         })
@@ -2097,11 +2234,10 @@ async function loadAttendanceSummary() {
     container.innerHTML = '<div style="text-align: center; padding: 40px;">Loading attendance data...</div>'
     
     try {
-        const allPrograms = ['STEM', 'ICT', 'GAS', 'ABM', 'HUMSS', 'TVL']
         let summaryHtml = `<div class="donut-grid" id="donutGrid">`
         const chartsToCreate = []
         
-        for (const program of allPrograms) {
+        for (const program of ALL_PROGRAMS) {
             const { data: students } = await supabase
                 .from('users')
                 .select('id')
@@ -2569,15 +2705,13 @@ document.getElementById('confirmBulkStudentBtn')?.addEventListener('click', asyn
         if (lines.length < 2) { showError('CSV must have header row'); return; }
         
         const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase());
-        const expectedHeaders = ['id', 'first_name', 'last_name', 'program', 'level', 'block', 'email', 'phone', 'password'];
+        const expectedHeaders = ['id', 'first_name', 'last_name', 'program', 'level', 'section', 'email', 'phone', 'password'];
         const missingHeaders = expectedHeaders.filter(h => !headers.includes(h));
         if (missingHeaders.length > 0) { showError(`Missing columns: ${missingHeaders.join(', ')}`); return; }
         
         const students = [];
         const errors = [];
-        const validPrograms = ['STEM', 'ICT', 'GAS', 'ABM', 'HUMSS', 'TVL'];
         const validLevels = ['11', '12'];
-        const validBlocks = ['A','B','C','D'];
         
         for (let i = 1; i < lines.length; i++) {
             const values = parseCSVLine(lines[i]);
@@ -2588,14 +2722,20 @@ document.getElementById('confirmBulkStudentBtn')?.addEventListener('click', asyn
                 student[header] = value;
             });
             
-            if (!student.id || !student.first_name || !student.last_name || !student.program || !student.level || !student.block || !student.email || !student.password) {
+            if (!student.id || !student.first_name || !student.last_name || !student.program || !student.level || !student.section || !student.email || !student.password) {
                 errors.push(`Row ${i}: Missing required fields`);
                 continue;
             }
             if (isNaN(parseInt(student.id))) { errors.push(`Row ${i}: ID must be a number`); continue; }
-            if (!validPrograms.includes(student.program.toUpperCase())) { errors.push(`Row ${i}: Invalid program`); continue; }
+            if (!ALL_PROGRAMS.includes(student.program.toUpperCase())) { errors.push(`Row ${i}: Invalid program`); continue; }
             if (!validLevels.includes(student.level.toString())) { errors.push(`Row ${i}: Level must be 11 or 12`); continue; }
-            if (!validBlocks.includes(student.block.toUpperCase())) { errors.push(`Row ${i}: Block must be A-D`); continue; }
+            
+            const program = student.program.toUpperCase()
+            const validSections = PROGRAM_SECTIONS[program] || []
+            if (!validSections.includes(student.section)) { 
+                errors.push(`Row ${i}: Section "${student.section}" not valid for program ${program}`); 
+                continue; 
+            }
             
             const fullName = combineFullName(student.first_name, student.last_name, student.middle_name || '', student.suffix || '')
             
@@ -2606,9 +2746,9 @@ document.getElementById('confirmBulkStudentBtn')?.addEventListener('click', asyn
                 last_name: student.last_name,
                 suffix: student.suffix || null,
                 name: fullName,
-                program: student.program.toUpperCase(),
+                program: program,
                 level: parseInt(student.level),
-                block: student.block.toUpperCase(),
+                section: student.section,
                 email: student.email,
                 phone: student.phone || null,
                 password: student.password,
@@ -2696,7 +2836,7 @@ document.getElementById('confirmBulkClassBtn')?.addEventListener('click', async 
         if (lines.length < 2) { showError('CSV must have header row'); return; }
         
         const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase());
-        const expectedHeaders = ['id', 'subject', 'program', 'teacher_id', 'blocks', 'class_room', 'class_building', 'class_day', 'class_time_start', 'class_time_end', 'class_level', 'class_color'];
+        const expectedHeaders = ['id', 'subject', 'program', 'teacher_id', 'sections', 'class_room', 'class_building', 'class_day', 'class_time_start', 'class_time_end', 'class_level', 'class_color'];
         const missingHeaders = expectedHeaders.filter(h => !headers.includes(h));
         if (missingHeaders.length > 0) { showError(`Missing columns: ${missingHeaders.join(', ')}`); return; }
         
@@ -2705,8 +2845,7 @@ document.getElementById('confirmBulkClassBtn')?.addEventListener('click', async 
         
         const classes = [];
         const errors = [];
-        const validPrograms = ['STEM', 'ICT', 'GAS', 'ABM', 'HUMSS', 'TVL', ''];
-        const validBuildings = ['Main', 'Annex'];
+        const validBuildings = ['Main', 'Annex', 'B1', 'B2', 'B3'];
         const validDays = ['M', 'T', 'W', 'Th', 'F', 'S'];
         
         for (let i = 1; i < lines.length; i++) {
@@ -2724,20 +2863,30 @@ document.getElementById('confirmBulkClassBtn')?.addEventListener('click', async 
             }
             if (isNaN(parseInt(classItem.id))) { errors.push(`Row ${i}: ID must be a number`); continue; }
             if (!validTeacherIds.includes(parseInt(classItem.teacher_id))) { errors.push(`Row ${i}: Teacher ${classItem.teacher_id} not found`); continue; }
-            if (classItem.program && !validPrograms.includes(classItem.program)) { errors.push(`Row ${i}: Invalid program`); continue; }
+            if (classItem.program && !ALL_PROGRAMS.includes(classItem.program)) { errors.push(`Row ${i}: Invalid program`); continue; }
             
-            let blocks = classItem.blocks ? classItem.blocks.split(',').map(b => b.trim()) : [];
+            let sections = classItem.sections ? classItem.sections.split(',').map(s => s.trim()) : [];
             let days = classItem.class_day.split(',').map(d => d.trim());
             let invalidDays = days.filter(d => !validDays.includes(d));
             if (invalidDays.length > 0) { errors.push(`Row ${i}: Invalid days: ${invalidDays.join(',')}`); continue; }
+            
+            // Validate sections match program
+            if (classItem.program) {
+                const validSections = PROGRAM_SECTIONS[classItem.program] || []
+                const invalidSections = sections.filter(s => !validSections.includes(s))
+                if (invalidSections.length > 0) {
+                    errors.push(`Row ${i}: Invalid sections for ${classItem.program}: ${invalidSections.join(', ')}`)
+                    continue
+                }
+            }
             
             let level = classItem.class_level ? parseInt(classItem.class_level) : null;
             if (level && level !== 11 && level !== 12) { errors.push(`Row ${i}: Level must be 11 or 12`); continue; }
             
             classes.push({
                 id: parseInt(classItem.id), subject: classItem.subject, program: classItem.program || null,
-                teacher_id: parseInt(classItem.teacher_id), blocks: blocks, class_room: parseInt(classItem.class_room),
-                class_building: classItem.class_building || 'Main', class_day: days,
+                teacher_id: parseInt(classItem.teacher_id), sections: sections, class_room: parseInt(classItem.class_room),
+                class_building: classItem.class_building || 'B1', class_day: days,
                 class_time_start: classItem.class_time_start, class_time_end: classItem.class_time_end,
                 class_level: level, class_color: classItem.class_color || 'orange'
             });

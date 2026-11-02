@@ -238,7 +238,7 @@ async function loadStudentClasses() {
             const location = `${classItem.class_building || ''} ${classItem.class_room || ''}`.trim() || 'N/A'
             
             // Format blocks
-            const blocksDisplay = classItem.blocks ? classItem.blocks.join(', ') : 'N/A'
+            const sectionsDisplay = classItem.sections ? classItem.sections.join(', ') : 'N/A'
             
             // Class color
             const classColor = classItem.class_color || '#0077FF'
@@ -261,7 +261,7 @@ async function loadStudentClasses() {
                         </div>
                         
                         <div class="class-details-row">
-                            <div class="class-detail-half"><strong>Class Block:</strong> ${blocksDisplay}</div>
+                            <div class="class-detail-half"><strong>Class Section:</strong> ${sectionsDisplay}</div>
                             <div class="class-detail-half"><strong>Number:</strong> ${teacherPhone || 'N/A'}</div>
                         </div>
                         

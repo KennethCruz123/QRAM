@@ -85,14 +85,14 @@ async function loadClassDetails() {
         }
         
         const location = `${data.class_building || ''} ${data.class_room || ''}`.trim() || 'N/A'
-        const blocksDisplay = data.blocks ? data.blocks.join(', ') : 'N/A'
+        const sectionsDisplay = data.sections ? data.sections.join(', ') : 'N/A'
         const teacherName = data.users?.name || 'Not assigned'
         
         document.getElementById('className').textContent = data.subject || 'N/A'
         document.getElementById('classCode').textContent = data.id
         document.getElementById('classTeacher').textContent = teacherName
         document.getElementById('classLevel').textContent = data.class_level || 'N/A'
-        document.getElementById('classBlock').textContent = blocksDisplay
+        document.getElementById('classSection').textContent = sectionsDisplay
         document.getElementById('classDay').textContent = daysDisplay
         document.getElementById('classTime').textContent = `${formatTime(data.class_time_start)} - ${formatTime(data.class_time_end)}`
         document.getElementById('classLoc').textContent = location

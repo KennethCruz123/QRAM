@@ -67,7 +67,7 @@ async function loadTeacherClasses() {
             const location = `${classItem.class_building || ''} ${classItem.class_room || ''}`.trim() || 'N/A'
             
             // Formating Class block/s
-            const blocksDisplay = classItem.blocks ? classItem.blocks.join(', ') : 'N/A'
+            const sectionsDisplay = classItem.sections ? classItem.sections.join(', ') : 'N/A'
             
             // CLass Color
             const classColor = classItem.class_color || '#0077FF'
@@ -81,7 +81,7 @@ async function loadTeacherClasses() {
                         <div class="class-detail"><strong>Class Code:</strong> ${classItem.id}</div>
                         <div class="class-detail"><strong>Program:</strong> ${classItem.program || 'N/A'}</div>
                         <div class="class-detail"><strong>Class Level:</strong> ${classItem.class_level || 'N/A'}</div>
-                        <div class="class-detail"><strong>Class Block:</strong> ${blocksDisplay}</div>
+                        <div class="class-detail"><strong>Class Section:</strong> ${sectionsDisplay}</div>
                         <div class="class-detail"><strong>Class Day:</strong> ${daysDisplay}</div>
                         <div class="class-detail"><strong>Class Time:</strong> ${formatTime(classItem.class_time_start)} - ${formatTime(classItem.class_time_end)}</div>
                         <div class="class-detail"><strong>Class Loc:</strong> ${location}</div>

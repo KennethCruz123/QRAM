@@ -15,7 +15,6 @@
 
 <body>
 
-
     <!-- Side Navigation Bar (Floating) -->
     <div class="side-nav">
         <a href="#attendance" class="side-nav-btn" title="Attendance">
@@ -40,12 +39,9 @@
         </a>
     </div>
     
-                                <!-- Main Body - Display Everything -->
     <div class="container">
 
-
-
-        <!-- Welcom Bar or Header -->
+        <!-- Welcome Bar -->
         <div class="welcome-bar">
             <div class="welcome-text">
                 <h2>Welcome, <span id="welcomeAdminName">Admin</span></h2>
@@ -63,8 +59,6 @@
             </div>
         </div>
 
-
-
         <!-- System Configuration -->
         <div class="section" id="config">
             <div class="section-header">
@@ -73,7 +67,6 @@
             <div style="padding: 20px;">
                 
                 <div class="config-row">
-                    <!-- Late Threshold -->
                     <div class="policy-group">
                         <label>Late Threshold:</label>
                         <div class="policy-input-group">
@@ -83,7 +76,6 @@
                         <p class="policy-description">Students scanned after this time will be marked as "Late"</p>
                     </div>
                     
-                    <!-- Minimum Attendance Rate -->
                     <div class="policy-group">
                         <label>Minimum Attendance Rate:</label>
                         <div class="policy-input-group">
@@ -101,8 +93,6 @@
             </div>
         </div>
 
-
-
         <!-- Manage Teachers Section -->
         <div class="section" id="teachers">
 
@@ -114,13 +104,10 @@
                 </div>
             </div>
 
-            <!-- Filter and Sort bar -->
             <div class="filter-sort-bar">
-                <!-- Filter -->
                 <div class="filter-group">
                     <input type="text" id="teacherSearch" placeholder="Search by ID or Name" class="filter-input">
                 </div>
-                <!-- Sort -->
                 <div class="sort-group">
                     <label>Sort by:</label>
                     <select id="teacherSort" class="sort-select">
@@ -132,27 +119,21 @@
                 </div>
             </div>
             
-            <!-- User Data Table -->
             <div class="table-container">
                 <table>
                     <thead>
                         <tr><th>ID</th><th>Name</th><th>Email</th><th>Phone #</th><th>Actions</th></tr>
                     </thead>
-                    <tbody id="teachersBody">
-                        
-                    </tbody>
+                    <tbody id="teachersBody"></tbody>
                 </table>
             </div>
 
-            <!-- Pagination -->
             <div class="pagination" id="teachersPagination">
                 <button class="pagination-btn prev-teacher">Previous</button>
                 <span class="page-info" id="teacherPageInfo">Page 1 of 1</span>
                 <button class="pagination-btn next-teacher">Next</button>
             </div>
         </div>
-
-
 
         <!-- Manage Students Section -->
         <div class="section" id="students">
@@ -165,13 +146,10 @@
                 </div>
             </div>
 
-            <!-- Filter and Sort bar -->
             <div class="filter-sort-bar">
-                <!-- Filter -->
                 <div class="filter-group">
-                    <input type="text" id="studentSearch" placeholder="Search by ID, Level, Block, Name" class="filter-input">
+                    <input type="text" id="studentSearch" placeholder="Search by ID, Level, Section, Name" class="filter-input">
                 </div>
-                <!-- Sort -->
                 <div class="sort-group">
                     <label>Sort by:</label>
                     <select id="studentSort" class="sort-select">
@@ -187,12 +165,12 @@
             <div class="program-filter-bar">
                 <span class="program-filter-label">Filter by Program:</span>
                 <button class="program-filter-btn active" data-program="all">All</button>
-                <button class="program-filter-btn" data-program="STEM">STEM</button>
                 <button class="program-filter-btn" data-program="ICT">ICT</button>
-                <button class="program-filter-btn" data-program="GAS">GAS</button>
-                <button class="program-filter-btn" data-program="ABM">ABM</button>
-                <button class="program-filter-btn" data-program="HUMSS">HUMSS</button>
-                <button class="program-filter-btn" data-program="TVL">TVL</button>
+                <button class="program-filter-btn" data-program="PROG2">PROG2</button>
+                <button class="program-filter-btn" data-program="PROG3">PROG3</button>
+                <button class="program-filter-btn" data-program="PROG4">PROG4</button>
+                <button class="program-filter-btn" data-program="PROG5">PROG5</button>
+                <button class="program-filter-btn" data-program="PROG6">PROG6</button>
             </div>
 
             <!-- Level Filter Buttons-->
@@ -203,29 +181,22 @@
                 <button class="level-filter-btn" data-level="12">12</button>
             </div>
 
-            <!-- Block Filter Buttons-->
-            <div class="block-filter-bar">
-                <span class="block-filter-label">Filter by Block:</span>
-                <button class="block-filter-btn active" data-block="all">All</button>
-                <button class="block-filter-btn" data-block="A">A</button>
-                <button class="block-filter-btn" data-block="B">B</button>
-                <button class="block-filter-btn" data-block="C">C</button>
-                <button class="block-filter-btn" data-block="D">D</button>
+            <!-- Section Filter Buttons (Dynamic) -->
+            <div class="section-filter-bar">
+                <span class="section-filter-label">Filter by Section:</span>
+                <button class="section-filter-btn active" data-section="all">All</button>
+                <!-- Will be populated dynamically -->
             </div>
 
-            <!-- User Data Table -->
             <div class="table-container">
                 <table>
                     <thead>
-                        <tr><th>ID</th><th>Name</th><th>Program</th><th>Level</th><th>Block</th><th>Email</th><th>Phone #</th><th>Actions</th></tr>
+                        <tr><th>ID</th><th>Name</th><th>Program</th><th>Level</th><th>Section</th><th>Email</th><th>Phone #</th><th>Actions</th></tr>
                     </thead>
-                    <tbody id="studentsBody">
-                        
-                    </tbody>
+                    <tbody id="studentsBody"></tbody>
                 </table>
             </div>
 
-            <!-- Pagination -->
             <div class="pagination" id="studentsPagination">
                 <button class="pagination-btn prev-student">Previous</button>
                 <span class="page-info" id="studentPageInfo">Page 1 of 1</span>
@@ -233,8 +204,6 @@
             </div>
 
         </div>
-
-
 
         <!-- Manage Classes Section -->
         <div class="section" id="classes">
@@ -247,13 +216,10 @@
                 </div>
             </div>
 
-            <!-- Filter and Sort bar -->
             <div class="filter-sort-bar">
-                <!-- Filter -->
                 <div class="filter-group">
                     <input type="text" id="classSearch" placeholder="Search by Code, Subject, Program, or Teacher" class="filter-input">
                 </div>
-                <!-- Sort -->
                 <div class="sort-group">
                     <label>Sort by:</label>
                     <select id="classSort" class="sort-select">
@@ -267,19 +233,15 @@
                 </div>
             </div>
             
-            <!-- Classes Data Table -->
             <div class="table-container">
                 <table>
                     <thead>
-                        <tr><th>Code</th><th>Subject</th><th>Program</th><th>Level</th><th>Block</th><th>Teacher</th><th># of Student</th><th>Actions</th></tr>
+                        <tr><th>Code</th><th>Subject</th><th>Program</th><th>Level</th><th>Section</th><th>Teacher</th><th># of Student</th><th>Actions</th></tr>
                     </thead>
-                    <tbody id="classesBody">
-                        
-                    </tbody>
+                    <tbody id="classesBody"></tbody>
                 </table>
             </div>
 
-            <!-- Pagination -->
             <div class="pagination" id="classesPagination">
                 <button class="pagination-btn prev-class">Previous</button>
                 <span class="page-info" id="classPageInfo">Page 1 of 1</span>
@@ -289,21 +251,16 @@
 
     </div>
 
-
-
-    <!-- Create/Edit Teacher Modal -->
+    <!-- Teacher Modal -->
     <div id="teacherModal" class="modal"> 
         <div class="modal-content">
-            <!-- Header -->
             <div class="modal-header">
                 <h3 id="teacherModalTitle">Add Teacher</h3>
                 <button class="close-modal" onclick="closeModal('teacherModal')">&times;</button>
             </div>
 
-            <!-- Input Fields -->
             <div class="form-group"><label>User ID</label><input type="text" id="teacherId" placeholder="Enter ID"></div>
             
-            <!-- NEW: Separate Name Fields in One Row -->
             <div class="form-group">
                 <label>Full Name</label>
                 <div style="display: flex; gap: 10px;">
@@ -318,7 +275,6 @@
             <div class="form-group"><label>Phone Number</label><input type="tel" id="teacherPhone" placeholder="Enter Phone Number"></div>
             <div class="form-group"><label>Password</label><input type="password" id="teacherPassword" placeholder="••••••"></div>
 
-            <!-- Cancel/Save Buttons -->
             <div class="modal-buttons">
                 <button class="cancel-btn" onclick="closeModal('teacherModal')">Cancel</button>
                 <button class="submit-btn" id="saveTeacherBtn">Create</button>
@@ -326,18 +282,14 @@
         </div>
     </div>
 
-
-
-    <!-- Create/Edit Student Modal -->
+    <!-- Student Modal -->
     <div id="studentModal" class="modal" >
         <div class="modal-content">
-            <!-- Header -->
             <div class="modal-header">
                 <h3 id="studentModalTitle">Add Student</h3>
                 <button class="close-modal" onclick="closeModal('studentModal')">&times;</button>
             </div>
 
-            <!-- Input Fields -->
             <div class="form-group"><label>Student ID</label><input type="text" id="studentId" placeholder="Enter ID"></div>
             
             <div class="form-group">
@@ -352,14 +304,14 @@
             
             <div class="form-group">
                 <label>Program</label>
-                <select id="studentProgram">
+                <select id="studentProgram" onchange="updateStudentSectionDropdown()">
                     <option value="">Select Program</option>
-                    <option value="STEM">STEM</option>
                     <option value="ICT">ICT</option>
-                    <option value="GAS">GAS</option>
-                    <option value="ABM">ABM</option>
-                    <option value="HUMSS">HUMSS</option>
-                    <option value="TVL">TVL</option>
+                    <option value="PROG2">PROG2</option>
+                    <option value="PROG3">PROG3</option>
+                    <option value="PROG4">PROG4</option>
+                    <option value="PROG5">PROG5</option>
+                    <option value="PROG6">PROG6</option>
                 </select>
             </div>
             <div class="form-group">
@@ -371,20 +323,15 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Block</label>
-                <select id="studentBlock">
-                    <option value="">Select Block</option>
-                    <option value="A">A</option>
-                    <option value="B">B</option>
-                    <option value="C">C</option>
-                    <option value="D">D</option>
+                <label>Section</label>
+                <select id="studentSection" disabled>
+                    <option value="">Select Program First</option>
                 </select>
             </div>
             <div class="form-group"><label>Email</label><input type="email" id="studentEmail" placeholder="Enter Email Address"></div>
             <div class="form-group"><label>Phone Number</label><input type="tel" id="studentPhone" placeholder="Enter phone Number"></div>
             <div class="form-group"><label>Password</label><input type="password" id="studentPassword" placeholder="••••••"></div>
             
-            <!-- Cancel/Save Buttons -->
             <div class="modal-buttons">
                 <button class="cancel-btn" onclick="closeModal('studentModal')">Cancel</button>
                 <button class="submit-btn" id="saveStudentBtn">Create</button>
@@ -392,34 +339,31 @@
         </div>
     </div>
 
-
-
-    <!-- Create/Edit Class Modal -->
+    <!-- Class Modal -->
     <div id="classModal" class="modal">
         <div class="modal-content">
-            <!-- Header -->
             <div class="modal-header">
                 <h3 id="classModalTitle">Add Class</h3>
                 <button class="close-modal" onclick="closeModal('classModal')">&times;</button>
             </div>
 
-            <!-- Input Fields -->
             <div class="form-group"><label>Class Code</label><input type="text" id="classCode" placeholder="Enter Class Code"></div>
             <div class="form-group"><label>Subject</label><input type="text" id="classSubject" placeholder="Enter Subject Name"></div>
             
             <div class="form-group">
                 <label>Program</label>
-                <select id="classProgram">
+                <select id="classProgram" onchange="updateClassSectionCheckboxes()">
                     <option value="">Open to All Programs</option>
-                    <option value="STEM">STEM</option>
                     <option value="ICT">ICT</option>
-                    <option value="GAS">GAS</option>
-                    <option value="ABM">ABM</option>
-                    <option value="HUMSS">HUMSS</option>
-                    <option value="TVL">TVL</option>
+                    <option value="PROG2">PROG2</option>
+                    <option value="PROG3">PROG3</option>
+                    <option value="PROG4">PROG4</option>
+                    <option value="PROG5">PROG5</option>
+                    <option value="PROG6">PROG6</option>
                 </select>
             </div>
-           <div class="form-group">
+            
+            <div class="form-group">
                 <label>Class Level</label>
                 <div style="display: flex; gap: 20px; margin-top: 5px;">
                     <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
@@ -430,28 +374,30 @@
                     </label>
                 </div>
             </div>
+            
             <div class="form-group">
-                <label>Blocks</label>
-                <div class="blocks-checkbox">
-                    <label><input type="checkbox" value="A">A</label>
-                    <label><input type="checkbox" value="B">B</label>
-                    <label><input type="checkbox" value="C">C</label>
-                    <label><input type="checkbox" value="D">D</label>
+                <label>Sections</label>
+                <div class="sections-checkbox" id="classSectionsContainer">
+                    <p style="color: #999; font-size: 12px;">Select a program first</p>
                 </div>
             </div>
+            
             <div class="form-group"><label>Teacher</label><select id="classTeacherSelect"></select></div>
             <div class="form-group">
                 <label>Building</label>
                 <div style="display: flex; gap: 20px; margin-top: 5px;">
                     <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
-                        <input type="radio" name="classBuilding" value="Main" checked> Main
+                        <input type="radio" name="classBuilding" value="B1" checked> B1
                     </label>
                     <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
-                        <input type="radio" name="classBuilding" value="Annex"> Annex
+                        <input type="radio" name="classBuilding" value="B2"> B2
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
+                        <input type="radio" name="classBuilding" value="B3"> B3
                     </label>
                 </div>
             </div>
-            <div class="form-group"><label>Room</label><input type="text" id="classRoom" placeholder="Enter Room Number"></div>
+            <div class="form-group"><label>Room</label><input type="text" id="classRoom" placeholder="Enter Room"></div>
             <div class="form-group">
                 <label>Days</label>
                 <div class="days-checkbox">
@@ -480,7 +426,6 @@
                 </select>
             </div>
 
-            <!-- Cancel/Save Buttons -->
             <div class="modal-buttons">
                 <button class="cancel-btn" onclick="closeModal('classModal')">Cancel</button>
                 <button class="submit-btn" id="saveClassBtn">Create</button>
@@ -488,19 +433,14 @@
         </div>
     </div>
 
-
-
     <!-- View Student Modal -->
     <div id="studentViewModal" class="modal">
-        <div class="modal-content"  style="border: 2px solid black;">
-
-            <!-- Header -->
+        <div class="modal-content" style="border: 2px solid black;">
             <div class="modal-header">
                 <h3>Student Details</h3>
                 <button class="close-modal" onclick="closeModal('studentViewModal')">&times;</button>
             </div>
 
-            <!-- Student Info -->
             <div class="student-info">
                 <p><strong>Student ID:</strong> <span id="viewStudentId"></span></p>
                 <p><strong>Name:</strong> <span id="viewStudentName"></span></p>
@@ -508,22 +448,17 @@
                 <p><strong>Phone:</strong> <span id="viewStudentPhone"></span></p>
             </div>
 
-            <!-- QR Code Container -->
             <div class="qr-container">
                 <p><strong>QR Code:</strong></p>
-                <div id="viewQRCodeDisplay"></div> <!-- Display QR Code -->
+                <div id="viewQRCodeDisplay"></div>
                 <button class="add-btn" id="downloadViewQrBtn">Download QR Code</button>
             </div>
         </div>
     </div>
 
-
-
-    <!-- ADD STUDENT TO CLASS MODAL -->
+    <!-- Add Student to Class Modal -->
     <div id="addStudentToClassModal" class="modal">
         <div class="modal-content">
-            
-            <!-- Header -->
             <div class="modal-header">
                 <h3>Add Students to Class</h3>
                 <button class="close-modal" onclick="closeModal('addStudentToClassModal')">&times;</button>
@@ -532,9 +467,6 @@
                 <label>Class: <span id="selectedClassName"></span></label>
             </div>
             
-            <!-- Filter -->
-             
-            <!-- Filter Level -->
             <div class="modal-filter-group">
                 <span class="modal-filter-label">Filter by Level:</span>
                 <div class="level-checkboxes" style="display: flex; gap: 10px; flex-wrap: wrap;">
@@ -543,30 +475,23 @@
                 </div>
             </div>
 
-            <!-- Filter Block -->
             <div class="modal-filter-group">
-                <span class="modal-filter-label">Filter by Block:</span>
-                <div class="block-checkboxes" style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <label><input type="checkbox" class="block-filter-checkbox" value="A"><span>A</span></label>
-                    <label><input type="checkbox" class="block-filter-checkbox" value="B"><span>B</span></label>
-                    <label><input type="checkbox" class="block-filter-checkbox" value="C"><span>C</span></label>
-                    <label><input type="checkbox" class="block-filter-checkbox" value="D"><span>D</span></label>
+                <span class="modal-filter-label">Filter by Section:</span>
+                <div class="section-checkboxes" id="modalSectionCheckboxes" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <!-- Will be populated dynamically based on class program -->
                 </div>
             </div>
             
-            <!-- Select/Clear All Buttons -->
             <div class="modal-action-buttons">
                 <button id="modalSelectAllBtn" class="modal-select-all-btn">Select All</button>
                 <button id="modalClearAllBtn" class="modal-clear-all-btn">Clear All</button>
             </div>
             
-            <!-- Display All Student With Filter -->
             <div class="form-group">
                 <label>Select Students:</label>
                 <div id="studentsListContainer" class="student-list" style="height: 40vh;"></div>
             </div>
             
-            <!-- Cancel/Save Buttons -->
             <div class="modal-buttons">
                 <button class="cancel-btn" onclick="closeModal('addStudentToClassModal')">Cancel</button>
                 <button class="submit-btn" id="saveAddStudentsBtn">Add Selected</button>
@@ -574,16 +499,14 @@
         </div>
     </div>
 
-    
-   
-    <!-- VIEW CLASS STUDENTS MODAL -->
+    <!-- View Class Students Modal -->
     <div id="viewClassStudentsModal" class="modal">
         <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
             <div class="modal-header">
                 <h3>Class Details</h3>
                 <button class="close-modal" onclick="closeModal('viewClassStudentsModal')">&times;</button>
             </div>
-            <div class="class-details"style="background: #0077FF; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <div class="class-details" style="background: #0077FF; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                 <p><strong>Subject:</strong> <span id="viewClassName"></span></p>
                 <p><strong>Program:</strong> <span id="viewClassProgram"></span></p>
                 <p><strong>Building:</strong> <span id="viewClassBuilding"></span></p>
@@ -602,10 +525,6 @@
             </div>
         </div>
     </div>
-
-
-
-
 
     <!-- Bulk Upload Teachers Modal -->
     <div id="bulkTeacherModal" class="modal">
@@ -643,9 +562,6 @@
         </div>
     </div>
 
-
-
-
     <!-- Bulk Upload Students Modal -->
     <div id="bulkStudentModal" class="modal">
         <div class="modal-content" style="max-width: 1500px;">
@@ -659,12 +575,12 @@
                 </p>
                 <pre style="border-radius: 8px; border: 2px solid black; font-size: 11px;">
 
-    id,first_name,middle_name,last_name,suffix,program,level,block,email,phone,password
-    1101,Maria,Isabel,Santos,,STEM,11,A,student1@email.com,09100003001,student1password
-    1102,Juan,Carlos,Dela Cruz,Jr.,ICT,12,B,student2@email.com,09100003002,student2password
+    id,first_name,middle_name,last_name,suffix,program,level,section,email,phone,password
+    1101,Maria,Isabel,Santos,,ICT,11,Banatao,student1@email.com,09100003001,student1password
+    1102,Juan,Carlos,Dela Cruz,Jr.,PROG2,12,PROG2-SEC2,student2@email.com,09100003002,student2password
                 </pre>
                 <p style="font-size: 12px; margin: 5px 0px;">
-                    <strong>Important:</strong> ID must be unique. Program: STEM, ICT, etc.... Level: 11-12. Block: A, B, C, D. Middle Name and Suffix are optional.
+                    <strong>Important:</strong> ID must be unique. Program: (Ex. ICT). Level: 11-12. Section must match the program (e.g., Banotao, TAN). Middle Name and Suffix are optional.
                 </p>
             </div>
             <div class="form-group">
@@ -682,7 +598,6 @@
         </div>
     </div>
 
-
     <!-- Bulk Upload Classes Modal -->
     <div id="bulkClassModal" class="modal">
         <div class="modal-content" style="max-width: 850px;">
@@ -696,14 +611,13 @@
                 </p>
                 <pre style="border-radius: 8px; border: 2px solid black; font-size: 10px; overflow-x: auto;">
 
-    id,subject,program,teacher_id,blocks,class_room,class_building,class_day,class_time_start,class_time_end,class_level,class_color
-    50001,Appdev,STEM,70000001,"A,B",101,Main,"M,W,F",08:00,10:00,11,blue
-    50002,Ethics,ICT,70000002,"A,B,C",102,Annex,"T,Th",10:30,12:30,12,green
-    50003,Networking,GAS,70000003,"A",103,Main,"M,W",13:00,15:00,11,orange
+    id,subject,program,teacher_id,sections,class_room,class_building,class_day,class_time_start,class_time_end,class_level,class_color
+    50001,Appdev,ICT,70000001,"Banatao,TAN",101,B1,"M,W,F",08:00,10:00,11,blue
+    50002,Ethics,PROG2,70000002,"PROG2-SEC1",102,B2,"T,Th",10:30,12:30,12,green
                 </pre>
                 <p style="font-size: 12px; margin: 5px 0px;">
                     <strong>Important:</strong> 
-                    blocks: use quotes like "A,B,C" | days: "M,T,W,Th,F,S" | program: STEM, ICT, etc... or leave empty for all programs                  
+                    sections: use quotes like "Banatao,TAN" | days: "M,T,W,Th,F,S" | program: ICT, or leave empty for all programs
                 </p>
             </div>
             <div class="form-group">
