@@ -650,7 +650,7 @@ function renderAuditPage() {
     pageLogs.forEach(log => {
         tbody.innerHTML += `
             <tr>
-                <td style="white-space: nowrap;">${new Date(log.timestamp).toLocaleString()}</td>
+                <td style="white-space: nowrap;">${new Date(log.timestamp.endsWith('Z') ? log.timestamp : log.timestamp + 'Z').toLocaleString('en-PH', { timeZone: 'Asia/Manila' })}</td>
                 <td>${log.user_name || 'Unknown'} (${log.user_id || '?'})</td>
                 <td>${log.user_role}</td>
                 <td style="font-weight: bold;">${log.action}</td>
